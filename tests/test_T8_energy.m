@@ -4,7 +4,7 @@ evalin('base','quad_params;');                     % sauberer Ausgangszustand
 assignin('base','Cd', zeros(3));
 assignin('base','w_cmd', [0;0;0;0]);               % freier Fall aus Ruhe
 
-out = quad_run(1);
+out = quad_run(1, 'quad_model_ST');
 w = getcomp(out,'v_b',  3);
 z = getcomp(out,'p_ned',3);
 g = evalin('base','g');

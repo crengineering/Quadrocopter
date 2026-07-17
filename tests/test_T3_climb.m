@@ -7,7 +7,7 @@ assignin('base','Cd', zeros(3));
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', 1.05*wh*[1;1;1;1]);
 
-out = quad_run(2);
+out = quad_run(2, 'quad_model_ST');
 vb = getsig(out,'v_b'); t = vb.Time; w = getcomp(out,'v_b',3);
 
 i1 = find(t >= 1, 1);                              % sicher eingeschwungen

@@ -6,7 +6,7 @@ Cd_save = evalin('base','Cd');
 assignin('base','Cd', zeros(3));
 c = onCleanup(@() assignin('base','Cd', Cd_save));  % danach zurücksetzen
 
-out = quad_run(1);
+out = quad_run(1, 'quad_model_ST');
 names = out.logsout.getElementNames;
 assert(any(strcmp(names,'v_b')), 'Signal v_b nicht geloggt.');
 

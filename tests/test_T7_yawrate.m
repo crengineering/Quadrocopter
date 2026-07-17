@@ -9,7 +9,7 @@ assignin('base','Cd', zeros(3));
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', wh*[1;1;1;1]);            % Hover -> kein Moment
 
-out = quad_run(2);
+out = quad_run(2, 'quad_model_ST');
 r = getcomp(out,'om',3);
 
 if abs(r(1) - r0) > 1e-3                            % Anfangsrate kam nicht an?

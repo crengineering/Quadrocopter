@@ -4,7 +4,7 @@ evalin('base','quad_params;');                     % sauberer Ausgangszustand
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', wh*[1.05; 0.95; 0.95; 1.05]);
 
-out = quad_run(0.3);
+out = quad_run(0.3, 'quad_model_ST');
 q  = getcomp(out,'om', 2);
 th = getcomp(out,'phi',2);
 assert(q(end)  > 0, 'q nicht > 0 (q_end=%.3f) -- Mixer-Vorzeichen (Pitch) pruefen', q(end));

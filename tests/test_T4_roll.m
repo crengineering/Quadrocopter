@@ -4,7 +4,7 @@ evalin('base','quad_params;');                     % sauberer Ausgangszustand
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', wh*[0.95; 0.95; 1.05; 1.05]);   % [M1 M2 M3 M4]
 
-out = quad_run(0.3);
+out = quad_run(0.3, 'quad_model_ST');
 p  = getcomp(out,'om', 1);
 ph = getcomp(out,'phi',1);
 assert(p(end)  > 0, 'p nicht > 0 (p_end=%.3f) -- Mixer-Vorzeichen (Roll) pruefen', p(end));

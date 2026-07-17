@@ -4,7 +4,7 @@ assignin('base','Cd', zeros(3));           % Drag aus -> exaktes Gleichgewicht
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', wh*[1;1;1;1]);
 
-out = quad_run(5);
+out = quad_run(5, 'quad_model_ST');
 vb = getsig(out,'v_b'); t = vb.Time; w = getcomp(out,'v_b',3);
 
 % "Hover" heisst NICHT w=0 (Motor-Anlauf-Dip), sondern: stationaer keine Beschleunigung.

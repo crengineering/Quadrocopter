@@ -4,7 +4,7 @@ evalin('base','quad_params;');                     % sauberer Ausgangszustand
 wh = evalin('base','w_hover');
 assignin('base','w_cmd', wh*[1.05; 0.95; 1.05; 0.95]);
 
-out = quad_run(0.3);
+out = quad_run(0.3, 'quad_model_ST');
 r  = getcomp(out,'om', 3);
 ps = getcomp(out,'phi',3);
 assert(r(end)  > 0, 'r nicht > 0 (r_end=%.3f) -- Mixer-Vorzeichen (Yaw/kQ) pruefen', r(end));

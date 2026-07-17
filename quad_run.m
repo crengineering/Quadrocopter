@@ -1,5 +1,5 @@
-function simOut = quad_run(stopTime)
-mdl = 'quad_model';
+function simOut = quad_run(stopTime, mdl)
+%mdl = model;
 quad_params;
 if ~bdIsLoaded(mdl), load_system(mdl); end
 
