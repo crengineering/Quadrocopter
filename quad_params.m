@@ -19,6 +19,8 @@ MIX = [ kT     kT     kT     kT;
         d*kT  -d*kT  -d*kT   d*kT;
         kQ    -kQ     kQ    -kQ ];
 
+MIX_inv = inv(MIX);
+
 % ---- Trimm: Schwebedrehzahl aus 4*kT*w^2 = m*g ----
 w_hover = sqrt(m*g/(4*kT));           % -> 990.5 rad/s, muss < w_max sein!
 fprintf('Hover: %.1f rad/s (%.0f%% von w_max)\n', w_hover, 100*w_hover/w_max);
