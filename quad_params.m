@@ -32,7 +32,7 @@ tau_sat_low =[-1.3;-1.3;-0.08];
 om_kP = [3;3;3];
 
 % Position NED controller
-ned_xy_kP = [1.44, 1.44];
+ned_xy_kP = [1.44; 1.44];
 ned_xy_kD = 1.92;
 ned_z_kP  = 2.7;
 ned_z_kD  = 2.5;
