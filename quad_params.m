@@ -46,6 +46,9 @@ v_dot_to_v_b = [0;0;0];
 om_dot_to_om = [0; 0; 0];
 pt1_w_cmd_to_w = zeros(4,1);
 
+% Diskretisierung
+Ts = 0.001;    %s   Abtastzeit Regler (1 kHz)
+
 
 % ---- Trimm: Schwebedrehzahl aus 4*kT*w^2 = m*g ----
 w_hover = sqrt(m*g/(4*kT));           % -> 990.5 rad/s, muss < w_max sein!

@@ -26,15 +26,15 @@ cs.set_param('CodeInterfacePackaging', 'Nonreusable function');   % Code interfa
 
 cs.set_param('GenerateAllocFcn', 'off');   % Use dynamic memory allocation for model initialization
 
-cs.set_param('Solver', 'VariableStepAuto');   % Solver
+cs.set_param('Solver', 'ode4');   % Solver
 
 % Solver
 cs.set_param('StartTime', '0.0');   % Start time
 cs.set_param('StopTime', '10.0');   % Stop time
 cs.set_param('SolverName', 'VariableStepAuto');   % Solver
-cs.set_param('SolverType', 'Variable-step');   % Type
+cs.set_param('SolverType', 'Fixed-step');   % Type
 cs.set_param('AbsTol', 'auto');   % Absolute tolerance
-cs.set_param('InitialStep', 'auto');   % Initial step size
+cs.set_param('InitialStep', 'Ts/4');   % Initial step size
 cs.set_param('ZeroCrossControl', 'UseLocalSettings');   % Zero-crossing control
 cs.set_param('ZeroCrossAlgorithm', 'Nonadaptive');   % Algorithm
 cs.set_param('ConsecutiveZCsStepRelTol', '10*128*eps');   % Time tolerance
