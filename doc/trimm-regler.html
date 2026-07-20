@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trimmung, Linearisierung &amp; Reglerentwurf — Referenz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F1EC;--paper2:#FBFAF6;--ink:#161A20;--ink-soft:#565E69;--line:#DAD8CF;
+  --scope-bg:#0C1417;--phos:#2FE3C6;--phos-dim:#1C8A79;--amber:#F4A62A;--violet:#9B8CFF;
+  --red:#E5484D;--cyan:#4FC3E8;
+  --disp:'Archivo',system-ui,sans-serif;--sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px 90px}
+.hero{padding:58px 0 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--phos-dim);font-weight:600;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+.eyebrow::before{content:"";width:34px;height:2px;background:var(--phos-dim)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,5.5vw,54px);line-height:1.02;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--phos-dim)}
+.lead{margin-top:18px;max-width:66ch;font-size:17.5px;color:var(--ink-soft)}
+.lead b{color:var(--ink);font-weight:600}
+.scope{background:var(--scope-bg);border-radius:10px;margin:28px 0;padding:10px;box-shadow:0 18px 40px -18px rgba(12,20,23,.6),inset 0 0 0 1px #1d3a38}
+.scope svg{display:block;width:100%;height:auto}
+.scope-cap{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:#5f8f88;text-align:center;padding:12px 14px 6px;text-transform:uppercase}
+.scope-cap b{color:var(--phos)}
+section{margin-top:56px}
+.sec-label{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--phos-dim);font-weight:600;margin-bottom:10px}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(21px,3vw,29px);letter-spacing:-.015em;margin-bottom:8px}
+h2+.subtitle{color:var(--ink-soft);font-size:16.5px;margin-bottom:20px;max-width:68ch}
+h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:26px 0 8px}
+p{margin:0 0 14px;max-width:74ch}
+.mono{font-family:var(--mono);font-size:.9em;background:#E7E5DC;border:1px solid var(--line);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.eq{font-family:var(--mono);font-size:16px;background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--phos-dim);border-radius:6px;padding:14px 18px;margin:16px 0;overflow-x:auto}
+.eq .c{color:var(--ink-soft)}
+.eq b{color:var(--phos-dim);font-weight:600}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px;background:var(--paper2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;text-align:left;background:var(--ink);color:var(--paper);padding:10px 13px;font-weight:500}
+td{border-top:1px solid var(--line);padding:9px 13px;vertical-align:top}
+td.m{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td.k{font-family:var(--mono);font-size:12.5px;white-space:nowrap;color:var(--phos-dim);font-weight:600}
+tr:nth-child(even) td{background:#F6F4EE}
+.card{background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--phos-dim);border-radius:10px;padding:18px 20px;margin:18px 0}
+.card .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:8px;display:block;color:var(--phos-dim)}
+.card.amber{border-left-color:var(--amber)} .card.amber .k{color:#b9791a}
+.card.red{border-left-color:var(--red)} .card.red .k{color:#c53b40}
+.card.violet{border-left-color:var(--violet)} .card.violet .k{color:#6a5cd6}
+.card p:last-child{margin-bottom:0}
+ul{margin:0 0 14px 20px;max-width:72ch}li{margin-bottom:6px}li::marker{color:var(--phos-dim)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.stat{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.stat .v{font-family:var(--disp);font-size:30px;font-weight:800;color:var(--phos-dim);line-height:1}
+.stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Quadrocopter · Regelungstechnische Referenz</div>
+  <h1>Trimmung, Linearisierung<br>&amp; <em>Reglerentwurf</em></h1>
+  <p class="lead">Vollständige Herleitung des Arbeitspunkts, der linearen Ersatzdynamik und der dreistufigen Kaskadenregelung — mit allen Zahlenwerten des 6-DoF-Modells. Ausgelegt <b>ohne Control System Toolbox</b>, rein über Bandbreiten und Faustformeln, anschließend am nichtlinearen Modell verifiziert.</p>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="stat"><div class="v">767,2 rad/s</div><div class="l">Schwebedrehzahl · 64 % von w_max</div></div>
+    <div class="stat"><div class="v">16</div><div class="l">Zustände im linearisierten Modell</div></div>
+  </div>
+</header>
+
+<!-- ================= 01 Strecke ================= -->
+<section>
+  <div class="sec-label">01 · Ausgangslage</div>
+  <h2>Die Strecke</h2>
+  <p class="subtitle">Nichtlineares 6-DoF-Modell in NED-Konvention, gebaut aus Newton-Euler-Gleichungen ohne Toolboxen.</p>
+
+  <p>Die Zustände teilen sich in vier Vektoren zu je drei Komponenten plus vier Motorzustände:</p>
+  <table>
+    <thead><tr><th>Zustand</th><th>Komponenten</th><th>Frame</th><th>Einheit</th></tr></thead>
+    <tbody>
+      <tr><td class="k">v_b</td><td>u, v, w</td><td>Body</td><td>m/s</td></tr>
+      <tr><td class="k">om</td><td>p, q, r</td><td>Body</td><td>rad/s</td></tr>
+      <tr><td class="k">Phi</td><td>φ, θ, ψ</td><td>—</td><td>rad</td></tr>
+      <tr><td class="k">p_ned</td><td>x, y, z</td><td>NED</td><td>m</td></tr>
+      <tr><td class="k">w</td><td>4 Motoren</td><td>—</td><td>rad/s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card amber">
+    <span class="k">NED-Konvention</span>
+    <p>Die z-Achse zeigt <strong>nach unten</strong>. Damit ist die Flughöhe <span class="mono">−z</span>, eine positive Vertikalgeschwindigkeit <span class="mono">w</span> bedeutet <strong>Sinken</strong>, und die Gravitation ist der konstante Vektor <span class="mono">[0; 0; +m·g]</span> ohne Vorzeichenwechsel. Das ist Luftfahrt- und Robotik-Standard (PX4, ArduPilot), verlangt aber Disziplin bei jedem Höhenvorzeichen.</p>
+  </div>
+
+  <h3>Parametersatz</h3>
+  <table>
+    <thead><tr><th>Größe</th><th>Wert</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td class="k">m</td><td class="m">1,20 kg</td><td>Abflugmasse</td></tr>
+      <tr><td class="k">g</td><td class="m">9,81 m/s²</td><td>Erdbeschleunigung</td></tr>
+      <tr><td class="k">l</td><td class="m">0,225 m</td><td>Armlänge Zentrum → Rotor</td></tr>
+      <tr><td class="k">d</td><td class="m">0,159 m</td><td>effektiver Hebelarm, l/√2 (X-Konfiguration)</td></tr>
+      <tr><td class="k">Ixx, Iyy</td><td class="m">1,0·10⁻² kg m²</td><td>Trägheit Roll, Pitch</td></tr>
+      <tr><td class="k">Izz</td><td class="m">1,8·10⁻² kg m²</td><td>Trägheit Yaw</td></tr>
+      <tr><td class="k">kT</td><td class="m">5,0·10⁻⁶ N/(rad/s)²</td><td>Schubkoeffizient</td></tr>
+      <tr><td class="k">kQ</td><td class="m">5,0·10⁻⁸ Nm/(rad/s)²</td><td>Reaktionsmomentkoeffizient</td></tr>
+      <tr><td class="k">tau</td><td class="m">0,05 s</td><td>Zeitkonstante Motor + ESC (PT1)</td></tr>
+      <tr><td class="k">w_max</td><td class="m">1200 rad/s</td><td>maximale Rotordrehzahl</td></tr>
+      <tr><td class="k">Cd</td><td class="m">diag(0,10 0,10 0,15) N/(m/s)</td><td>linearer Luftwiderstand</td></tr>
+      <tr><td class="k">Ts</td><td class="m">0,001 s</td><td>Reglertakt (1 kHz)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mischermatrix</h3>
+  <p>Die X-Konfiguration mit M1 vorn-rechts (CCW), M2 hinten-rechts (CW), M3 hinten-links (CCW), M4 vorn-links (CW) führt auf:</p>
+  <div class="eq">
+    ⎡ T  ⎤ &nbsp;&nbsp;⎡ kT &nbsp;&nbsp;&nbsp; kT &nbsp;&nbsp;&nbsp; kT &nbsp;&nbsp;&nbsp; kT ⎤ ⎡ ω₁² ⎤<br>
+    ⎢ τx ⎥ = ⎢ −d·kT &nbsp;−d·kT &nbsp;&nbsp;d·kT &nbsp;&nbsp;d·kT ⎥ ⎢ ω₂² ⎥<br>
+    ⎢ τy ⎥ &nbsp;&nbsp;⎢ &nbsp;&nbsp;d·kT &nbsp;−d·kT &nbsp;−d·kT &nbsp;&nbsp;d·kT ⎥ ⎢ ω₃² ⎥<br>
+    ⎣ τz ⎦ &nbsp;&nbsp;⎣ &nbsp;&nbsp;kQ &nbsp;&nbsp;&nbsp;−kQ &nbsp;&nbsp;&nbsp;&nbsp;kQ &nbsp;&nbsp;&nbsp;−kQ ⎦ ⎣ ω₄² ⎦
+  </div>
+  <p>Die Matrix ist regulär (<span class="mono">rank = 4</span>) mit Konditionszahl <strong>100</strong> — das entspricht exakt dem Verhältnis <span class="mono">kT/kQ</span> und spiegelt die schwache Gierautorität wider. In <span class="mono">float</span> unkritisch (Verlust von etwa zwei signifikanten Stellen von sieben), erst bei Fixed-Point relevant.</p>
+  <p>Der Regler benutzt die <strong>offline berechnete Inverse</strong>. Auf dem Target läuft nur eine Matrixmultiplikation, keine Inversion:</p>
+  <table>
+    <thead><tr><th>MIX_inv (Zeilen-Major)</th></tr></thead>
+    <tbody>
+      <tr><td class="m">&nbsp;5,000000e+04 &nbsp;−3,142697e+05 &nbsp;&nbsp;3,142697e+05 &nbsp;&nbsp;5,000000e+06</td></tr>
+      <tr><td class="m">&nbsp;5,000000e+04 &nbsp;−3,142697e+05 &nbsp;−3,142697e+05 &nbsp;−5,000000e+06</td></tr>
+      <tr><td class="m">&nbsp;5,000000e+04 &nbsp;&nbsp;3,142697e+05 &nbsp;−3,142697e+05 &nbsp;&nbsp;5,000000e+06</td></tr>
+      <tr><td class="m">&nbsp;5,000000e+04 &nbsp;&nbsp;3,142697e+05 &nbsp;&nbsp;3,142697e+05 &nbsp;−5,000000e+06</td></tr>
+    </tbody>
+  </table>
+  <p>Weil die Mischung mit <span class="mono">ω²</span> rechnet, folgt nach der Inversen zwingend eine Begrenzung auf <span class="mono">[0, w_max²]</span> und anschließend die Wurzel — sonst entstünden negative oder komplexe Stellwerte.</p>
+</section>
+
+<!-- ================= 02 Trimmung ================= -->
+<section>
+  <div class="sec-label">02 · Arbeitspunkt</div>
+  <h2>Trimmung</h2>
+  <p class="subtitle">Ein Trimmpunkt ist ein Zustand plus Eingang, bei dem sich nichts ändert — alle Ableitungen sind null.</p>
+
+  <div class="eq"><b>ẋ = f(x₀, u₀) = 0</b> &nbsp;&nbsp;<span class="c">// Gleichgewicht, sagt noch nichts über Stabilität</span></div>
+
+  <p>Für den Quadrocopter ist das der <strong>Schwebeflug</strong>: alle Geschwindigkeiten null, alle Drehraten null, Lage waagerecht. Der Eingang, der das hält, folgt aus der Schubbilanz:</p>
+  <div class="eq">4 · kT · <b>w_hover</b>² = m · g &nbsp;&nbsp;⟹&nbsp;&nbsp; <b>w_hover</b> = √( m·g / (4·kT) ) = <b>767,2 rad/s</b></div>
+
+  <p>Das sind 64 % von <span class="mono">w_max</span>, es bleiben also 36 % Reserve für Manöver. Dieser Wert wurde bewusst eingestellt: Mit dem ursprünglichen <span class="mono">kT = 3·10⁻⁶</span> lag die Schwebedrehzahl bei 83 % — zu wenig Luft für den Reglerentwurf.</p>
+
+  <div class="card violet">
+    <span class="k">Doppelter Nutzen</span>
+    <p><span class="mono">w_hover</span> ist nicht nur der Bezugspunkt der Linearisierung, sondern auch der <strong>Grundbedarf</strong> im Betrieb. Im Regler wird daraus die <strong>Vorsteuerung</strong> <span class="mono">T_hover = m·g = 11,77 N</span>: Der Höhenregler liefert nur noch die Abweichung, nicht die gesamte Tragkraft. Das entlastet den Integrator und macht das Verhalten um den Arbeitspunkt linearer.</p>
+  </div>
+</section>
+
+<!-- ================= 03 Linearisierung ================= -->
+<section>
+  <div class="sec-label">03 · Lineares Ersatzmodell</div>
+  <h2>Linearisierung</h2>
+  <p class="subtitle">Das nichtlineare Modell wird am Arbeitspunkt durch seine Tangente ersetzt — für kleine Abweichungen exzellent, für große unbrauchbar.</p>
+
+  <div class="eq"><b>δẋ ≈ A·δx + B·δu</b> &nbsp;&nbsp;<span class="c">mit</span>&nbsp; A = ∂f/∂x <span class="c">(16×16)</span>, &nbsp;B = ∂f/∂u <span class="c">(16×4)</span></div>
+
+  <p><span class="mono">linmod</span> berechnet die Jacobi-Matrizen numerisch: Jeder Zustand wird minimal gestört, die Änderung der Ableitung gemessen, daraus der Differenzenquotient gebildet. Keine Toolbox nötig, <span class="mono">linmod</span> gehört zu Simulink selbst.</p>
+
+  <h3>Voraussetzungen, ohne die das Ergebnis unbrauchbar ist</h3>
+  <ul>
+    <li><strong>Motorzustände auf w_hover.</strong> Die Modell-IC steht auf 0, weil die Tests den Anlauftransienten brauchen. Für die Linearisierung wird <span class="mono">x0(1:4) = w_hover</span> nur im Analyseskript gesetzt — das Modell bleibt unangetastet.</li>
+    <li><strong>„Ignore limit and reset when linearizing"</strong> am Motor-Integrator. Ohne diesen Haken behandelt <span class="mono">linmod</span> die Sättigung als Knick ohne eindeutige Tangente und verschluckt die vier Motorpole.</li>
+    <li><strong>Genau 16 Zustände.</strong> Eine doppelt vorhandene Kinematik (22 Zustände) erzeugte zunächst Scheinmoden bei 767j und 1328j — Vielfache der Motordrehzahl, physikalisch unmöglich.</li>
+  </ul>
+
+  <h3>Die 16 Pole im Schwebeflug</h3>
+  <table>
+    <thead><tr><th>Pole</th><th>Herkunft</th><th>τ = −1/Re</th><th>Deutung</th></tr></thead>
+    <tbody>
+      <tr><td class="k">−20 &nbsp;(4×)</td><td>Motor-PT1, −1/tau</td><td class="m">0,05 s</td><td>schnell, stabil — die Aktuatorik</td></tr>
+      <tr><td class="k">−0,125</td><td>−Cd_z/m = −0,15/1,2</td><td class="m">8 s</td><td>vertikaler Luftwiderstand</td></tr>
+      <tr><td class="k">−0,083 ± 2,00j</td><td>Pendelmode, Dämpfung −Cd_xy/m</td><td class="m">12 s</td><td>schwach gedämpftes Kippeln</td></tr>
+      <tr><td class="k">−0,467 ± 1,945j</td><td>Pendelmode, gekoppelt</td><td class="m">2,1 s</td><td>schwach gedämpft</td></tr>
+      <tr><td class="k">0 ± 1,60j</td><td>Lage-Positions-Kopplung</td><td class="m">∞</td><td>ungedämpft — pendelt endlos</td></tr>
+      <tr><td class="k">0 &nbsp;(mehrfach)</td><td>Integratorketten</td><td class="m">∞</td><td>Höhe, Gier, Position</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card amber">
+    <span class="k">Das Urteil: grenzstabil</span>
+    <p>Kein Pol liegt in der rechten Halbebene — der Copter ist nicht explosiv instabil. Aber viele Pole liegen <strong>auf der imaginären Achse</strong>: Eine Kippstörung pendelt endlos, eine Höhenabweichung bleibt einfach bestehen. <strong>Ohne Regler fängt sich das System nicht selbst.</strong> Die Pole zeigen zugleich, wogegen geregelt werden muss und wie schnell die Schleifen sein dürfen.</p>
+  </div>
+
+  <h3>Die Kopplung, auf der die Positionsregelung aufbaut</h3>
+  <p>Aus der Linearisierung folgt die Beziehung zwischen Neigung und Horizontalbeschleunigung. Sie ist der Grund, warum ein Quadrocopter sich neigen muss, um sich zu bewegen:</p>
+  <div class="eq"><b>ẍ ≈ −g·θ</b> &nbsp;&nbsp;&nbsp;&nbsp; <b>ÿ ≈ +g·φ</b> &nbsp;&nbsp;<span class="c">// überkreuzt, x über Pitch, y über Roll</span></div>
+</section>
+
+<!-- ================= 04 Kaskade ================= -->
+<section>
+  <div class="sec-label">04 · Struktur</div>
+  <h2>Die Kaskade</h2>
+  <p class="subtitle">Drei verschachtelte Schleifen, jede äußere etwa drei- bis fünfmal langsamer als die darunterliegende.</p>
+
+  <div class="scope">
+    <svg viewBox="0 0 980 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dreistufige Kaskade mit Bandbreiten">
+      <defs>
+        <marker id="aP" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#9B8CFF"/></marker>
+        <marker id="aC" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#4FC3E8"/></marker>
+        <marker id="aT" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#2FE3C6"/></marker>
+        <marker id="aA" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#F4A62A"/></marker>
+      </defs>
+      <text x="14" y="86" fill="#b3a8ff" font-family="IBM Plex Mono,monospace" font-size="11">pos_soll</text>
+      <line x1="72" y1="90" x2="92" y2="90" stroke="#9B8CFF" stroke-width="2" marker-end="url(#aP)"/>
+      <circle cx="108" cy="90" r="14" fill="#0f211f" stroke="#9B8CFF" stroke-width="1.7"/><text x="101" y="95" fill="#b3a8ff" font-family="IBM Plex Mono,monospace" font-size="12">±</text>
+      <rect x="130" y="68" width="122" height="44" rx="6" fill="#10201e" stroke="#9B8CFF" stroke-width="1.6"/>
+      <text x="191" y="86" fill="#d9d2ff" font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">Position PD</text>
+      <text x="191" y="102" fill="#8579d6" font-family="IBM Plex Mono,monospace" font-size="9" text-anchor="middle">ωc ≈ 1,2 rad/s</text>
+      <line x1="252" y1="90" x2="282" y2="90" stroke="#9B8CFF" stroke-width="2" marker-end="url(#aC)"/>
+      <circle cx="298" cy="90" r="14" fill="#0f211f" stroke="#4FC3E8" stroke-width="1.7"/><text x="291" y="95" fill="#4FC3E8" font-family="IBM Plex Mono,monospace" font-size="12">±</text>
+      <rect x="320" y="68" width="122" height="44" rx="6" fill="#10201e" stroke="#4FC3E8" stroke-width="1.6"/>
+      <text x="381" y="86" fill="#c5ecf7" font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">Lage P</text>
+      <text x="381" y="102" fill="#5aa7c4" font-family="IBM Plex Mono,monospace" font-size="9" text-anchor="middle">ωc ≈ 3 rad/s</text>
+      <line x1="442" y1="90" x2="472" y2="90" stroke="#4FC3E8" stroke-width="2" marker-end="url(#aT)"/>
+      <circle cx="488" cy="90" r="14" fill="#0f211f" stroke="#2FE3C6" stroke-width="1.7"/><text x="481" y="95" fill="#2FE3C6" font-family="IBM Plex Mono,monospace" font-size="12">±</text>
+      <rect x="510" y="68" width="122" height="44" rx="6" fill="#10201e" stroke="#2FE3C6" stroke-width="1.6"/>
+      <text x="571" y="86" fill="#d7f5ef" font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">Rate PI</text>
+      <text x="571" y="102" fill="#68a89e" font-family="IBM Plex Mono,monospace" font-size="9" text-anchor="middle">ωc ≈ 10 rad/s</text>
+      <line x1="632" y1="90" x2="662" y2="90" stroke="#2FE3C6" stroke-width="2" marker-end="url(#aA)"/>
+      <rect x="664" y="68" width="96" height="44" rx="6" fill="#10201e" stroke="#F4A62A" stroke-width="1.6"/>
+      <text x="712" y="94" fill="#f6d9a8" font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">Mixer</text>
+      <line x1="760" y1="90" x2="790" y2="90" stroke="#F4A62A" stroke-width="2" marker-end="url(#aA)"/>
+      <rect x="792" y="68" width="130" height="44" rx="6" fill="#10201e" stroke="#F4A62A" stroke-width="1.6"/>
+      <text x="857" y="94" fill="#f6d9a8" font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">Strecke</text>
+      <line x1="922" y1="90" x2="946" y2="90" stroke="#F4A62A" stroke-width="2"/>
+      <polyline points="946,90 946,132 488,132 488,104" fill="none" stroke="#2FE3C6" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aT)"/>
+      <text x="640" y="128" fill="#68a89e" font-family="IBM Plex Mono,monospace" font-size="9">om</text>
+      <polyline points="946,90 946,170 298,170 298,104" fill="none" stroke="#4FC3E8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aC)"/>
+      <text x="560" y="166" fill="#5aa7c4" font-family="IBM Plex Mono,monospace" font-size="9">Phi</text>
+      <polyline points="946,90 946,208 108,208 108,104" fill="none" stroke="#9B8CFF" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#aP)"/>
+      <text x="470" y="204" fill="#8579d6" font-family="IBM Plex Mono,monospace" font-size="9">p_ned, v_b</text>
+    </svg>
+    <div class="scope-cap">Bandbreitentrennung: <b>1,2 → 3 → 10 rad/s</b>. Die Motoren bei −20 rad/s erlauben die schnelle innere Schleife.</div>
+  </div>
+
+  <p>Die Trennung ist keine Konvention, sondern Voraussetzung: Nur wenn die innere Schleife deutlich schneller ist, darf man sie beim Entwurf der äußeren als ideal (Verstärkung 1) behandeln. Andernfalls kommandiert die äußere Schleife Sollwerte, die die innere noch nicht umgesetzt hat, und beide schaukeln sich auf.</p>
+</section>
+
+<!-- ================= 05 Reglerentwurf ================= -->
+<section>
+  <div class="sec-label">05 · Auslegung</div>
+  <h2>Reglerentwurf und Parameter</h2>
+  <p class="subtitle">Alle drei Stufen manuell ausgelegt: Bandbreite wählen, Verstärkung aus der Streckenform ableiten, am Modell nachjustieren.</p>
+
+  <h3>Innere Schleife — Drehraten (PI)</h3>
+  <p>Die Rate-Strecke ist pro Achse ein reiner Integrator, weil <span class="mono">ω̇ = M/I</span> gilt. Für <span class="mono">G(s) = 1/(I·s)</span> mit P-Regler ist die Durchtrittsfrequenz <span class="mono">ωc = Kp/I</span>, also <span class="mono">Kp = ωc·I</span>. Der I-Anteil kommt gegen stationäre Störmomente hinzu, seine Nullstelle liegt bei etwa <span class="mono">ωc/8</span>. Ein D-Anteil ist unnötig — die Strecke ist bereits ein Integrator.</p>
+  <table>
+    <thead><tr><th>Achse</th><th>Trägheit</th><th>Kp</th><th>Ki</th><th>Stellgrenze</th></tr></thead>
+    <tbody>
+      <tr><td>Roll (p)</td><td class="m">0,010</td><td class="k">0,100</td><td class="k">0,125</td><td class="m">± 1,30 Nm</td></tr>
+      <tr><td>Pitch (q)</td><td class="m">0,010</td><td class="k">0,100</td><td class="k">0,125</td><td class="m">± 1,30 Nm</td></tr>
+      <tr><td>Yaw (r)</td><td class="m">0,018</td><td class="k">0,216</td><td class="k">0,324</td><td class="m">± 0,08 Nm</td></tr>
+    </tbody>
+  </table>
+  <p>Die Gierachse hat höhere Verstärkungen, weil ihre Trägheit größer ist — die Bandbreite bleibt dadurch für alle drei Achsen gleich. Die enge Stellgrenze bei Yaw folgt aus der schwachen Gierautorität: <span class="mono">τz,max = 2·kQ·(w_max² − w_hover²) ≈ 0,085 Nm</span>.</p>
+  <p><strong>Anti-Windup</strong> per Clamping, weil die Motoren sättigen. Ohne diese Maßnahme lädt sich der Integrator bei Stellgrenzen auf und blockiert den Regler danach für Sekunden.</p>
+
+  <h3>Mittlere Schleife — Lage (P)</h3>
+  <p>Da die Rate-Schleife als ideal gilt und <span class="mono">Φ̇ ≈ om</span> ist, sieht der Lageregler wieder einen reinen Integrator <span class="mono">1/s</span>. Für einen P-Regler gilt dann schlicht <span class="mono">Kp = ωc</span>. Ein I-Anteil ist überflüssig, weil die Strecke selbst integriert und die unterlagerte Schleife bereits stationär genau ist.</p>
+  <table>
+    <thead><tr><th>Achse</th><th>Kp</th><th>Bemerkung</th></tr></thead>
+    <tbody>
+      <tr><td>Roll (φ)</td><td class="k">3,0</td><td rowspan="3">für alle Achsen gleich — die Trägheit steckt bereits in der unterlagerten Rate-Schleife</td></tr>
+      <tr><td>Pitch (θ)</td><td class="k">3,0</td></tr>
+      <tr><td>Yaw (ψ)</td><td class="k">3,0</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Äußere Schleife — Position (PD)</h3>
+  <p>Hier ist die Strecke ein <strong>Doppelintegrator</strong>: Winkel erzeugt Beschleunigung, die zweimal integriert wird. Ein reiner P-Regler würde ungedämpft schwingen — genau die Mode <span class="mono">0 ± 1,6j</span> aus der Linearisierung. Der D-Anteil ist deshalb zwingend und wird aus der <strong>gemessenen Geschwindigkeit</strong> gebildet statt aus der Fehlerableitung.</p>
+  <table>
+    <thead><tr><th>Achse</th><th>Kp</th><th>Kd</th><th>Stellgröße</th><th>Dämpfung aus</th></tr></thead>
+    <tbody>
+      <tr><td>x (vorwärts)</td><td class="k">1,44</td><td class="k">1,92</td><td>Pitch θ</td><td class="m">v_b(1)</td></tr>
+      <tr><td>y (seitwärts)</td><td class="k">1,44</td><td class="k">1,92</td><td>Roll φ</td><td class="m">v_b(2)</td></tr>
+      <tr><td>z (Höhe)</td><td class="k">2,70</td><td class="k">2,50</td><td>Schub T</td><td class="m">v_b(3)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <span class="k">D-Anteil aus der Messgröße statt aus dem Fehler</span>
+    <p>Wird der D-Anteil auf den Regelfehler angewendet, differenziert er bei einem Sollwertsprung die Sprungflanke — es entsteht ein Impuls, der in dieser Kaskade bis zu <strong>19 rad Sollwinkel, 58 rad/s Sollrate und 6 Nm Momentenforderung</strong> erzeugte. Das schlug jede Begrenzung an, lud den Integrator auf und bremste das Einschwingen um Sekunden. Die Dämpfung aus der gemessenen Geschwindigkeit kann diesen Effekt konstruktionsbedingt nicht erzeugen.</p>
+  </div>
+</section>
+
+<!-- ================= 06 Kopplung ================= -->
+<section>
+  <div class="sec-label">06 · Der entscheidende Baustein</div>
+  <h2>Von der Sollbeschleunigung zum Sollwinkel</h2>
+  <p class="subtitle">Achsentausch, Vorzeichen und Schubnormierung in drei Blöcken.</p>
+
+  <p>Der Positionsregler liefert eine <strong>Sollbeschleunigung</strong>, die Lage-Schleife erwartet aber einen <strong>Sollwinkel</strong>. Die Umrechnung invertiert die Kopplungsgleichung. Statt der Näherung mit konstantem <span class="mono">g</span> wird durch den <strong>tatsächlichen spezifischen Schub</strong> geteilt:</p>
+  <div class="eq">
+    <b>θ_soll = − ẍ_soll / (T/m)</b><br>
+    <b>φ_soll = + ÿ_soll / (T/m)</b> &nbsp;&nbsp;<span class="c">// T ist der aktuelle Schub aus dem Höhenregler</span>
+  </div>
+
+  <p>Der Achsentausch und die Vorzeichen stecken in einer 2×2-Matrix:</p>
+  <div class="eq">⎡ φ ⎤ &nbsp;⎡ &nbsp;0 &nbsp;&nbsp;1 ⎤ ⎡ ẍ_soll ⎤<br>⎣ θ ⎦ = ⎣ −1 &nbsp;&nbsp;0 ⎦ ⎣ ÿ_soll ⎦</div>
+
+  <div class="card">
+    <span class="k">Warum T/m statt g — messbarer Effekt</span>
+    <p>Neigt sich der Copter, verliert der Schub vertikale Komponente. Der Höhenregler drückt daraufhin mehr Gesamtschub — und dieser Zusatzschub verstärkt bei geneigtem Copter zugleich die Horizontalkraft. Mit der <span class="mono">1/g</span>-Näherung stieg dadurch das Überschwingen im gekoppelten 3D-Flug von 7 % auf <strong>22 %</strong>. Mit der Division durch <span class="mono">T/m</span> verschwand es praktisch vollständig. Dieselbe Formulierung verwenden auch reale Flight Stacks.</p>
+  </div>
+</section>
+
+<!-- ================= 07 Fallstricke ================= -->
+<section>
+  <div class="sec-label">07 · Hart erarbeitet</div>
+  <h2>Fallstricke und ihre Symptome</h2>
+  <p class="subtitle">Alle Punkte, die während des Entwurfs zu Divergenz oder falschen Ergebnissen geführt haben — jeweils mit dem Symptom, an dem man sie erkennt.</p>
+
+  <table>
+    <thead><tr><th>Symptom</th><th>Ursache</th><th>Abhilfe</th></tr></thead>
+    <tbody>
+      <tr><td>Copter stürzt ab statt zu steigen</td><td>NED-Vorzeichen im Höhenregler: „höher" heißt kleineres z</td><td>Fehlerbildung <span class="mono">z_ist − z_soll</span></td></tr>
+      <tr><td>x-Kommando bewegt y, System schaukelt auf</td><td>fehlender Achsentausch — x wirkt auf Pitch, y auf Roll</td><td>Matrix <span class="mono">[0 1; −1 0]</span></td></tr>
+      <tr><td>Sollwinkel divergieren ins Absurde</td><td>Vorzeichen der Kopplung: positive Rückkopplung</td><td>Minus bei x, Plus bei y</td></tr>
+      <tr><td>Höhe schwingt sich langsam auf</td><td>Dämpfungsterm mit falschem Vorzeichen — facht an statt zu bremsen</td><td>Vorzeichen am Summierer prüfen</td></tr>
+      <tr><td>Position kriecht über 18 s statt 4 s</td><td>D-Kick sättigt die Kette, Integrator lädt sich auf</td><td>D aus gemessener Geschwindigkeit</td></tr>
+      <tr><td>Gierwinkel läuft nach 10 s weg</td><td>ψ_soll nicht verdrahtet, Achse ungeregelt</td><td>ψ_soll als eigene Führungsgröße</td></tr>
+      <tr><td>Pole bei 767j und 1328j</td><td>doppelt vorhandene Kinematik, 22 statt 16 Zustände</td><td>tote Integratorkette entfernen</td></tr>
+      <tr><td>Motorpole fehlen in eig(A)</td><td>Sättigung am Integrator wird linearisiert</td><td>„Ignore limit when linearizing"</td></tr>
+      <tr><td>Läufe verhalten sich unreproduzierbar</td><td>Fast Restart übernimmt Endzustand des Vorlaufs</td><td>Fast Restart aus, ICs prüfen</td></tr>
+      <tr><td>Reglerbegrenzung bremst normale Manöver</td><td>Grenze zu eng gewählt, greift im Normalbetrieb</td><td>an physikalischer Autorität orientieren</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card red">
+    <span class="k">Methodische Lehre</span>
+    <p>Bei mehreren unklaren Vorzeichen gleichzeitig ist systematisches Vorgehen der einzige Weg: <strong>immer nur eine Sache ändern, dann testen</strong>. Werden Reglerwerte, Vorzeichen und Struktur gemeinsam angepasst, lässt sich aus dem Ergebnis nicht mehr ableiten, welche Änderung was bewirkt hat. Ebenso wichtig: einen definierten Startzustand sicherstellen, bevor überhaupt interpretiert wird.</p>
+  </div>
+</section>
+
+<!-- ================= 08 Verifikation ================= -->
+<section>
+  <div class="sec-label">08 · Nachweis</div>
+  <h2>Verifikation des Entwurfs</h2>
+
+  <table>
+    <thead><tr><th>Prüfung</th><th>Kriterium</th><th>Ergebnis</th></tr></thead>
+    <tbody>
+      <tr><td>Rate-Sprung, alle drei Achsen</td><td>folgt Sollwert, keine Kopplung</td><td>Übersprechen auf 10⁻¹⁵ (Maschinengenauigkeit)</td></tr>
+      <tr><td>Lage-Sprung, alle drei Achsen</td><td>folgt ohne Überschwingen</td><td>erfüllt</td></tr>
+      <tr><td>Positions-Sprung 2 m je Achse</td><td>Überschwingen &lt; 10 %</td><td>7 %</td></tr>
+      <tr><td>3D-Sprung (2, 2, −2)</td><td>alle Achsen konvergieren</td><td>praktisch überschwingfrei</td></tr>
+      <tr><td>Diskretisierung 1 kHz</td><td>Abweichung zum kontinuierlichen Entwurf</td><td>max. 4 mm auf 2 m</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card amber">
+    <span class="k">Grenze des Entwurfs</span>
+    <p>Bei einem Sollsprung von 10 m neigt sich der Copter so stark, dass die vertikale Schubkomponente nicht mehr ausreicht — die Höhe bricht um bis zu 4 m ein, bevor der Regler sie zurückholt. Das ist kein Reglerfehler, sondern die Schubreserve von 36 %. Abhilfe: <strong>Sollwertrampen</strong> statt Sprüngen, wie sie in der Praxis aus der Trajektorienplanung kommen. Ein Positionssprung dieser Größe ist ein Stresstest, kein Betriebsfall.</p>
+  </div>
+</section>
+
+<footer>
+  <span>6-DoF-Quadrocopter · Arbeitspunkt Schwebeflug</span>
+  <span>w_hover = 767,2 rad/s · Ts = 1 ms</span>
+  <span>Kaskade 1,2 / 3 / 10 rad/s</span>
+  <span>Entwurf ohne Control System Toolbox</span>
+</footer>
+
+</div>
+</body>
+</html>

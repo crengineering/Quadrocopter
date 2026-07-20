@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vom Modell aufs Target — Quadrocopter-Flugregler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F1EC;--paper2:#FBFAF6;--ink:#161A20;--ink-soft:#565E69;--line:#DAD8CF;
+  --scope-bg:#0C1417;--phos:#2FE3C6;--phos-dim:#1C8A79;--amber:#F4A62A;--violet:#9B8CFF;
+  --red:#E5484D;--cyan:#4FC3E8;
+  --disp:'Archivo',system-ui,sans-serif;--sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px 90px}
+.hero{padding:58px 0 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--phos-dim);font-weight:600;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+.eyebrow::before{content:"";width:34px;height:2px;background:var(--phos-dim)}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,5.5vw,54px);line-height:1.02;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--phos-dim)}
+.lead{margin-top:18px;max-width:66ch;font-size:17.5px;color:var(--ink-soft)}
+.lead b{color:var(--ink);font-weight:600}
+.scope{background:var(--scope-bg);border-radius:10px;margin:28px 0;padding:10px;box-shadow:0 18px 40px -18px rgba(12,20,23,.6),inset 0 0 0 1px #1d3a38}
+.scope svg{display:block;width:100%;height:auto}
+.scope-cap{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:#5f8f88;text-align:center;padding:12px 14px 6px;text-transform:uppercase}
+.scope-cap b{color:var(--phos)}
+section{margin-top:56px}
+.sec-label{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--phos-dim);font-weight:600;margin-bottom:10px}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(21px,3vw,29px);letter-spacing:-.015em;margin-bottom:8px}
+h2+.subtitle{color:var(--ink-soft);font-size:16.5px;margin-bottom:20px;max-width:68ch}
+h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:26px 0 8px}
+p{margin:0 0 14px;max-width:74ch}
+.mono{font-family:var(--mono);font-size:.9em;background:#E7E5DC;border:1px solid var(--line);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.eq{font-family:var(--mono);font-size:16px;background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--phos-dim);border-radius:6px;padding:14px 18px;margin:16px 0;overflow-x:auto}
+.eq .c{color:var(--ink-soft)}
+.eq b{color:var(--phos-dim);font-weight:600}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px;background:var(--paper2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;text-align:left;background:var(--ink);color:var(--paper);padding:10px 13px;font-weight:500}
+td{border-top:1px solid var(--line);padding:9px 13px;vertical-align:top}
+td.m{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td.k{font-family:var(--mono);font-size:12.5px;white-space:nowrap;color:var(--phos-dim);font-weight:600}
+tr:nth-child(even) td{background:#F6F4EE}
+.card{background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--phos-dim);border-radius:10px;padding:18px 20px;margin:18px 0}
+.card .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:8px;display:block;color:var(--phos-dim)}
+.card.amber{border-left-color:var(--amber)} .card.amber .k{color:#b9791a}
+.card.red{border-left-color:var(--red)} .card.red .k{color:#c53b40}
+.card.violet{border-left-color:var(--violet)} .card.violet .k{color:#6a5cd6}
+.card p:last-child{margin-bottom:0}
+ul{margin:0 0 14px 20px;max-width:72ch}li{margin-bottom:6px}li::marker{color:var(--phos-dim)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.stat{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.stat .v{font-family:var(--disp);font-size:30px;font-weight:800;color:var(--phos-dim);line-height:1}
+.stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 24px}
+.chain{display:flex;flex-direction:column;gap:0;margin:22px 0}
+.chain .st{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:14px 18px;position:relative}
+.chain .st .n{font-family:var(--mono);font-size:11px;color:var(--phos-dim);font-weight:600;letter-spacing:.1em}
+.chain .st b{font-family:var(--disp);font-weight:600;font-size:16px}
+.chain .st p{margin:4px 0 0;font-size:14.5px;color:var(--ink-soft)}
+.chain .ar{align-self:center;color:var(--ink-soft);font-size:18px;padding:5px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Quadrocopter · Projektdokumentation</div>
+  <h1>Vom Modell<br><em>aufs Target</em></h1>
+  <p class="lead">Die vollständige Entwicklungskette eines Flugreglers: von den Bewegungsgleichungen über Modellierung, Testabsicherung, Linearisierung und Reglerentwurf bis zur verifizierten Ausführung auf einem <b>AURIX TC399</b>. Ohne Coder-Toolboxen, jeder Schritt gegen den vorigen abgesichert.</p>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="stat"><div class="v">3,9 µs</div><div class="l">Rechenzeit je Takt auf dem Target</div></div>
+    <div class="stat"><div class="v">0,5 %</div><div class="l">Auslastung im 1-ms-Budget</div></div>
+  </div>
+</header>
+
+<section>
+  <div class="sec-label">Überblick</div>
+  <h2>Die Kette</h2>
+  <p class="subtitle">Jede Stufe erzeugt ein Artefakt, das gegen die vorherige verifiziert wird. Kein Schritt wird begonnen, bevor der vorige nachweislich stimmt.</p>
+
+  <div class="chain">
+    <div class="st"><span class="n">01 · MODELL</span><br><b>Nichtlineare Strecke in Simulink</b><p>Newton-Euler, vier Subsysteme, 16 Zustände, NED-Konvention. Ohne Aerospace Blockset aufgebaut.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">02 · ABSICHERUNG</span><br><b>MiL-Testsuite T1–T8</b><p>Freier Fall, Schwebeflug, Steigflug, Vorzeichen aller drei Achsen, Drallerhaltung, Energieerhaltung.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">03 · ANALYSE</span><br><b>Trimmung und Linearisierung</b><p>Schwebepunkt bei 767,2 rad/s, 16 Pole interpretiert. Ergebnis: grenzstabil, Regler zwingend.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">04 · ENTWURF</span><br><b>Dreistufige Kaskade</b><p>Rate, Lage, Position. Manuell ausgelegt über Bandbreiten, ohne Control System Toolbox.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">05 · DISKRETISIERUNG</span><br><b>Fester Takt, 1 kHz</b><p>Backward Euler für den einzigen Integrator, Fixed-step-Solver. Abweichung zum kontinuierlichen Entwurf: 4 mm.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">06 · CODE</span><br><b>Handgeschriebener C99-Regler</b><p>Vier Funktionen, float, ohne dynamische Allokation. Ein einziger Zustand, ein einziger math.h-Aufruf.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">07 · SiL</span><br><b>C-Code als S-Function im Modell</b><p>Legacy Code Tool, Vergleich gegen den Simulink-Regler. Abweichung 0,45 mm bei 2 m Manöver.</p></div>
+    <div class="ar">↓</div>
+    <div class="st"><span class="n">08 · AUF DEM TARGET</span><br><b>Vektor-Replay über UDP</b><p>20 001 Takte auf dem TC399, Vergleich gegen die SiL-Referenz. Übereinstimmung auf float-Auflösung.</p></div>
+  </div>
+</section>
+
+<!-- ============ 01 Modell ============ -->
+<section>
+  <div class="sec-label">01 · Modellierung</div>
+  <h2>Die Strecke</h2>
+  <p class="subtitle">Vier Subsysteme, klar getrennt nach physikalischer Funktion.</p>
+
+  <table>
+    <thead><tr><th>Subsystem</th><th>Eingang → Ausgang</th><th>Inhalt</th></tr></thead>
+    <tbody>
+      <tr><td class="k">actuators</td><td class="m">w_cmd → w</td><td>PT1 je Motor (tau = 0,05 s) mit Sättigung auf [0, w_max]</td></tr>
+      <tr><td class="k">kraefte_momente</td><td class="m">w, v_b → F_b, M_b</td><td>Mischermatrix, Schub, Drehmomente, Luftwiderstand</td></tr>
+      <tr><td class="k">dynamik_6DoF</td><td class="m">F_b, M_b, Phi → v_b, om</td><td>Newton-Euler mit Kreiselkopplung, Gravitation im Body-Frame</td></tr>
+      <tr><td class="k">kinematik</td><td class="m">v_b, om → Phi, p_ned, R</td><td>Euler-Raten, Drehmatrix, Positionsintegration</td></tr>
+    </tbody>
+  </table>
+
+  <p>Die Trennung ist nicht kosmetisch: Sie bestimmt später, welche Teile durch C-Code ersetzt werden und welche als Strecke im Modell bleiben. Die Rückführung von <span class="mono">Phi</span> aus der Kinematik in die Dynamik schließt den Kreis, weil die Gravitation zur Umrechnung in den Body-Frame die aktuelle Lage braucht.</p>
+
+  <div class="card red">
+    <span class="k">Zwei Modellfehler, die erst die Analyse aufdeckte</span>
+    <p>Die Gravitation wurde anfangs <strong>doppelt gezählt</strong> — in <span class="mono">kraefte_momente</span> und in <span class="mono">eom_rhs</span> —, was zu 2 g im freien Fall führte. Und es existierte eine <strong>doppelte Kinematik</strong>: Zwei parallele Integratorketten berechneten Lage und Position, eine davon endete tot in Terminatoren. Die Testsuite blieb bei beiden Fehlern zunächst grün; erst die Linearisierung machte sie durch unmögliche Pole sichtbar.</p>
+  </div>
+</section>
+
+<!-- ============ 02 Tests ============ -->
+<section>
+  <div class="sec-label">02 · Absicherung</div>
+  <h2>Die MiL-Testsuite</h2>
+  <p class="subtitle">Acht Tests, die jeweils genau eine physikalische Eigenschaft prüfen — und ein Runner, der Bestanden, Fehlgeschlagen und Übersprungen zählt.</p>
+
+  <table>
+    <thead><tr><th>Test</th><th>prüft</th><th>Kriterium</th></tr></thead>
+    <tbody>
+      <tr><td class="k">T1</td><td>Integration und Gravitation</td><td>w(1 s) = 9,81 m/s bei abgeschaltetem Drag</td></tr>
+      <tr><td class="k">T2</td><td>Schub-Gravitations-Bilanz</td><td>stationär keine Nettobeschleunigung bei w_hover</td></tr>
+      <tr><td class="k">T3</td><td>vertikale Dynamik</td><td>Beschleunigung ≈ 1,0 m/s² aufwärts bei 1,05 · w_hover</td></tr>
+      <tr><td class="k">T4–T6</td><td>Mischer-Vorzeichen</td><td>Roll, Pitch, Yaw jeweils positiv bei passender Drehzahlverteilung</td></tr>
+      <tr><td class="k">T7</td><td>Drallerhaltung</td><td>Gierrate bleibt ohne Moment konstant</td></tr>
+      <tr><td class="k">T8</td><td>Positions-Geschwindigkeits-Konsistenz</td><td>½v² = g·Fallhöhe</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card">
+    <span class="k">Was die Tests wirklich leisten</span>
+    <p>Der Wert zeigte sich nicht beim Schreiben, sondern später: Nach einer kleinen Modelländerung meldete T2 eine Restbeschleunigung von <strong>9,81 m/s²</strong> — der Wert sagte sofort „kein Schub, freier Fall". Ohne Regression wäre der Fehler erst beim Reglerentwurf aufgefallen, drei Schritte später und ungleich schwerer zu lokalisieren.</p>
+    <p>Ein Test, der eine Modellvoraussetzung braucht (T7 benötigt eine parametrierbare Anfangsdrehrate), meldet über einen eigenen Fehler-Identifier <strong>SKIP</strong> statt FAIL. So bleibt die Suite aussagekräftig, auch wenn eine Voraussetzung fehlt.</p>
+  </div>
+</section>
+
+<!-- ============ 03 Analyse ============ -->
+<section>
+  <div class="sec-label">03 · Analyse</div>
+  <h2>Trimmung und Linearisierung</h2>
+  <p class="subtitle">Der Arbeitspunkt und das lineare Ersatzmodell — Grundlage für jede Aussage über Stabilität und Bandbreite.</p>
+
+  <p>Der Trimmpunkt ist der Schwebeflug bei <span class="mono">w_hover = √(m·g/(4·kT)) = 767,2 rad/s</span>. Um diesen Punkt liefert <span class="mono">linmod</span> die Jacobi-Matrizen, deren Eigenwerte die Systempole sind.</p>
+
+  <div class="eq"><span class="c">Eigenwerte von A</span> = <b>Nullstellen von det(sI − A)</b> = <span class="c">Pole des Systems</span></div>
+
+  <table>
+    <thead><tr><th>Pole</th><th>Bedeutung</th><th>Konsequenz</th></tr></thead>
+    <tbody>
+      <tr><td class="k">−20 (4×)</td><td>Motordynamik, −1/tau</td><td>erlaubt eine schnelle innere Schleife</td></tr>
+      <tr><td class="k">−0,125</td><td>vertikaler Luftwiderstand</td><td>sehr langsame Eigendämpfung</td></tr>
+      <tr><td class="k">0 ± 1,6j</td><td>ungedämpfte Pendelmode</td><td>muss geregelt werden</td></tr>
+      <tr><td class="k">0 (mehrfach)</td><td>Integratorketten</td><td>Höhe und Position bleiben ohne Regler stehen</td></tr>
+    </tbody>
+  </table>
+
+  <p>Kein Pol liegt rechts der imaginären Achse — das System ist nicht explosiv instabil, aber <strong>grenzstabil</strong>: Es fängt sich nicht selbst. Zugleich liefert die Analyse die Kopplung <span class="mono">ẍ ≈ −g·θ</span>, auf der die gesamte Positionsregelung aufbaut.</p>
+
+  <p class="subtitle" style="margin-top:18px">Die vollständige Herleitung mit allen Polen, Zeitkonstanten und Reglerparametern steht im Begleitdokument zur Regelungstechnik.</p>
+</section>
+
+<!-- ============ 04 Regler ============ -->
+<section>
+  <div class="sec-label">04 · Entwurf</div>
+  <h2>Die Kaskade</h2>
+  <p class="subtitle">Drei Schleifen, von innen nach außen gebaut und einzeln verifiziert, bevor die nächste dazukam.</p>
+
+  <table>
+    <thead><tr><th>Stufe</th><th>regelt</th><th>Stellgröße</th><th>Typ</th><th>Bandbreite</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Rate</td><td>p, q, r</td><td>Momente</td><td>PI</td><td class="m">≈ 10 rad/s</td></tr>
+      <tr><td class="k">Lage</td><td>φ, θ, ψ</td><td>Solldrehraten</td><td>P</td><td class="m">≈ 3 rad/s</td></tr>
+      <tr><td class="k">Position</td><td>x, y</td><td>Sollwinkel (Neigung)</td><td>PD</td><td class="m">≈ 1,2 rad/s</td></tr>
+      <tr><td class="k">Position</td><td>z</td><td>Schub</td><td>PD</td><td class="m">≈ 1,5 rad/s</td></tr>
+    </tbody>
+  </table>
+
+  <p>Die Reihenfolge war nicht beliebig: Erst als die Rate-Schleife auf allen drei Achsen sauber folgte und entkoppelt war, kam die Lage-Schleife darüber. Erst danach die Position. Jeder Schritt wurde einachsig geprüft, bevor mehrere Achsen gleichzeitig kommandiert wurden — bei drei möglichen Vorzeichenfehlern pro Achse ist das der einzige Weg, der nicht im Kreis läuft.</p>
+
+  <div class="card violet">
+    <span class="k">Der Baustein, der den Unterschied machte</span>
+    <p>Die Umrechnung von Sollbeschleunigung in Sollwinkel teilt durch den <strong>tatsächlichen Schub</strong> <span class="mono">T/m</span> statt durch die Konstante <span class="mono">g</span>. Neigt sich der Copter, erhöht der Höhenregler den Schub — und dieser Zusatzschub verstärkt bei geneigtem Copter zugleich die Horizontalkraft. Mit der Näherung stieg das Überschwingen im 3D-Flug von 7 % auf 22 %; mit der exakten Formulierung verschwand es. Dieselbe Lösung verwenden reale Flight Stacks.</p>
+  </div>
+</section>
+
+<!-- ============ 05 Diskretisierung ============ -->
+<section>
+  <div class="sec-label">05 · Diskretisierung</div>
+  <h2>Vom s- in den z-Bereich</h2>
+  <p class="subtitle">Der bewusst kontinuierlich begonnene Entwurf wird auf festen Takt umgestellt — ein isolierter Schritt mit genau einem neuen Effekt.</p>
+
+  <p>Der Aufbau macht diesen Schritt erfreulich klein: Von allen Reglerblöcken hat <strong>nur der Ratenregler einen Zustand</strong>. Alle anderen sind algebraisch, weil die D-Anteile aus gemessenen Geschwindigkeiten gebildet werden statt aus Fehlerableitungen.</p>
+
+  <table>
+    <thead><tr><th>Element</th><th>Zustand</th><th>Verfahren</th></tr></thead>
+    <tbody>
+      <tr><td>Positions-PD (x, y, z)</td><td>nein</td><td>algebraisch</td></tr>
+      <tr><td>Lage-P</td><td>nein</td><td>algebraisch</td></tr>
+      <tr><td class="k">Rate-PI</td><td class="k">ja</td><td class="k">Backward Euler</td></tr>
+      <tr><td>Mischer-Inverse, Sättigung, Wurzel</td><td>nein</td><td>algebraisch</td></tr>
+    </tbody>
+  </table>
+
+  <p>Bei <span class="mono">Ts = 1 ms</span> und einer schnellsten Regeldynamik von 10 rad/s liegt die Überabtastung bei etwa Faktor 600. Die Abtastung fügt rund <span class="mono">Ts/2</span> Totzeit hinzu — bei diesen Bandbreiten praktisch unsichtbar. Der quantitative Vergleich bestätigte das: <strong>maximal 4 mm Abweichung</strong> gegenüber dem kontinuierlichen Entwurf bei einem 2-m-Manöver, stationär null.</p>
+
+  <p>Für die Strecke bleibt ein kontinuierlicher, aber <strong>fixed-step</strong> Solver (ode4, Schrittweite Ts/4). Das macht die Läufe deterministisch und den späteren Vergleich mit dem C-Code scharf.</p>
+</section>
+
+<!-- ============ 06 C-Code ============ -->
+<section>
+  <div class="sec-label">06 · Implementierung</div>
+  <h2>Der C-Code</h2>
+  <p class="subtitle">Handgeschrieben, weil keine Coder-Toolbox verfügbar ist — und dadurch vollständig nachvollziehbar.</p>
+
+  <table>
+    <thead><tr><th>Funktion</th><th>Eingang → Ausgang</th><th>Zustand</th></tr></thead>
+    <tbody>
+      <tr><td class="k">pos_ctrl_step</td><td class="m">p_soll, p_ist, v_b, psi_soll → T, phi_soll</td><td>—</td></tr>
+      <tr><td class="k">att_ctrl_step</td><td class="m">phi_soll, phi_ist → om_soll</td><td>—</td></tr>
+      <tr><td class="k">rate_ctrl_step</td><td class="m">om_soll, om_ist → tau_soll</td><td class="k">I-Anteil (3×)</td></tr>
+      <tr><td class="k">mixer_step</td><td class="m">T, tau_soll → w_cmd</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p>Eigenschaften, die für ein Steuergerät zählen: C99, durchgängig <span class="mono">float</span> (der TC399 hat eine FPU), keine dynamische Allokation, keine Rekursion, ein einziger Aufruf aus <span class="mono">math.h</span> (<span class="mono">sqrtf</span> im Mischer). Parameter und Zustand liegen in getrennten Strukturen, damit mehrere Instanzen möglich wären und der Zustand explizit zurücksetzbar ist.</p>
+
+  <p>Die Aufteilung in vier Funktionen statt einer Gesamtfunktion war eine bewusste Entscheidung: Sie erlaubt den Vergleich <strong>jeder einzelnen Stufe</strong> gegen ihr Simulink-Pendant. Weicht etwas ab, ist sofort klar, welcher Block betroffen ist — statt nur zu wissen, dass irgendwo in der Kette etwas nicht stimmt.</p>
+</section>
+
+<!-- ============ 07 SiL ============ -->
+<section>
+  <div class="sec-label">07 · Software in the Loop</div>
+  <h2>Der C-Code im Modell</h2>
+  <p class="subtitle">Ohne Embedded Coder, aber mit dem Legacy Code Tool: aus vier C-Funktionen werden vier Simulink-Blöcke.</p>
+
+  <p>Das Legacy Code Tool ist dafür gemacht, <em>bestehenden</em> Code einzubinden. Ein kurzes Registrierungsskript beschreibt die Funktionssignatur, MATLAB generiert und kompiliert die S-Function. Als Compiler genügt der frei verfügbare MinGW.</p>
+
+  <p>Da das Werkzeug keine Strukturen binden kann, liegt eine dünne Wrapper-Schicht mit flachen Array-Signaturen dazwischen. Der eigentliche Reglercode bleibt davon <strong>unberührt</strong> — er ist exakt das, was später aufs Target geht.</p>
+
+  <div class="card">
+    <span class="k">Der Zustand wird sichtbar gemacht</span>
+    <p>Statt den Integratorzustand in der S-Function zu verstecken, wird er als Ein- und Ausgang herausgeführt und in Simulink über ein Unit Delay zurückgeführt. Das umgeht nicht nur eine Einschränkung des Werkzeugs, sondern ist für die Verifikation besser: Der Integratorzustand ist ein loggbares Signal und lässt sich direkt gegen den I-Anteil des Simulink-Reglers vergleichen.</p>
+  </div>
+
+  <h3>Ergebnis</h3>
+  <table>
+    <thead><tr><th>Manöver</th><th>max. Abweichung Position</th><th>Bewertung</th></tr></thead>
+    <tbody>
+      <tr><td>3D-Sprung 2 m</td><td class="m">0,45 mm</td><td>float gegen double, transient, stationär null</td></tr>
+      <tr><td>Sprung 10 m (mit Sättigung)</td><td class="m">15 mm</td><td>Anti-Windup-Implementierungen sind nicht bitgleich</td></tr>
+    </tbody>
+  </table>
+  <p>Die Momente stimmten in beiden Fällen innerhalb der Toleranz — die Positionsabweichung entsteht erst durch die zweifache Integration kleiner Momentenunterschiede.</p>
+</section>
+
+<!-- ============ 08 Target ============ -->
+<section>
+  <div class="sec-label">08 · Auf der Hardware</div>
+  <h2>Vektor-Replay auf dem TC399</h2>
+  <p class="subtitle">Echtes PIL braucht Embedded Coder plus Connectivity-Package. Derselbe Nachweis lässt sich auch ohne führen.</p>
+
+  <p>Statt einer synchronisierten Kopplung werden die Eingangsvektoren des SiL-Laufs aufgezeichnet, über UDP ans Target geschickt, dort Takt für Takt durch denselben C-Code geführt und die Ergebnisse zurückgeholt. Das deckt genau das ab, was PIL finden soll: Compiler-Unterschiede, FPU-Verhalten, die <span class="mono">sqrtf</span>-Implementierung, Optimierungseffekte.</p>
+
+  <table>
+    <thead><tr><th>Richtung</th><th>Inhalt</th><th>Größe</th></tr></thead>
+    <tbody>
+      <tr><td class="k">PC → Target</td><td>p_ned_soll, p_ned_ist, v_b_ist, psi_soll, phi_ist, om_ist</td><td class="m">16 × float = 64 B</td></tr>
+      <tr><td class="k">Target → PC</td><td>T, phi_soll, om_soll, tau_soll, w_cmd, tau_I + Zykluszeit</td><td class="m">17 × float + uint32 = 72 B</td></tr>
+      <tr><td class="k">Reset</td><td>Integratorzustand auf null</td><td class="m">1 B (0x00), quittiert</td></tr>
+    </tbody>
+  </table>
+
+  <p>Die MATLAB-Seite nutzt <span class="mono">java.net.DatagramSocket</span> und kommt damit ohne Instrument Control Toolbox aus. Auf dem Target bedient ein lwIP-Callback den Port, im selben Kontext wie die bereits vorhandenen Dienste.</p>
+
+  <h3>Ergebnis über 20 001 Takte</h3>
+  <table>
+    <thead><tr><th>Signal</th><th>max. absolute Abweichung</th><th>relativ</th></tr></thead>
+    <tbody>
+      <tr><td class="k">T_soll</td><td class="m">2,9·10⁻⁶ N</td><td class="m">2·10⁻⁷</td></tr>
+      <tr><td class="k">phi_soll</td><td class="m">6,0·10⁻⁸ rad</td><td class="m">2·10⁻⁷</td></tr>
+      <tr><td class="k">om_soll</td><td class="m">1,8·10⁻⁷ rad/s</td><td class="m">3·10⁻⁷</td></tr>
+      <tr><td class="k">tau_soll</td><td class="m">1,9·10⁻⁸ Nm</td><td class="m">5·10⁻⁸</td></tr>
+      <tr><td class="k">w_cmd</td><td class="m">1,8·10⁻⁴ rad/s</td><td class="m">2·10⁻⁷</td></tr>
+    </tbody>
+  </table>
+
+  <p>Durchgängig etwa <strong>10⁻⁷ relativ</strong> — das ist exakt die Auflösungsgrenze von <span class="mono">float</span> mit seiner 24-Bit-Mantisse. Die Abweichungen liegen also im letzten darstellbaren Bit. Zwischen den Manövern, wenn sich nichts ändert, sind sie exakt null.</p>
+
+  <div class="card amber">
+    <span class="k">Ein scheinbarer Ausreißer, der keiner war</span>
+    <p>Der Integratorzustand wich zunächst um 7,6·10⁻⁵ ab — deutlich mehr als alle anderen Kanäle, und im Widerspruch dazu, dass die Stellgröße selbst nur um 10⁻⁸ abwich. Die Ursache war ein <strong>Zeitversatz um einen Takt</strong>: Simulink loggt den Zustand vor der Aktualisierung, das Target meldet ihn danach. Nach Verschiebung um einen Index fiel die Abweichung auf 2,5·10⁻⁹ — dasselbe Rauschniveau wie überall sonst.</p>
+  </div>
+
+  <h3>Ausführungszeit</h3>
+  <div class="grid2">
+    <div class="stat"><div class="v">3,9 µs</div><div class="l">Mittel über 20 001 Takte</div></div>
+    <div class="stat"><div class="v">4,5 µs</div><div class="l">Maximum · 0,5 % von 1 ms</div></div>
+  </div>
+  <p>Die Streuung zwischen Minimum und Maximum beträgt 0,6 µs — ein sehr deterministischer Ablauf ohne störende Interrupts oder Cache-Effekte. Der Takt könnte problemlos auf ein Vielfaches erhöht werden; für Sensorfusion und Kommunikation bleibt praktisch das gesamte Budget frei.</p>
+</section>
+
+<!-- ============ 09 Werkzeuge ============ -->
+<section>
+  <div class="sec-label">09 · Rahmenbedingungen</div>
+  <h2>Was ohne Lizenzen ging</h2>
+
+  <table>
+    <thead><tr><th>Aufgabe</th><th>üblicher Weg</th><th>hier verwendet</th></tr></thead>
+    <tbody>
+      <tr><td>Flugmechanik-Modell</td><td>Aerospace Blockset</td><td>Newton-Euler von Hand</td></tr>
+      <tr><td>Linearisierung</td><td>Simulink Control Design</td><td class="k">linmod (Basis-Simulink)</td></tr>
+      <tr><td>Reglerauslegung</td><td>Control System Toolbox</td><td>Bandbreiten und Faustformeln</td></tr>
+      <tr><td>Codegenerierung</td><td>Embedded Coder</td><td>handgeschriebenes C99</td></tr>
+      <tr><td>SiL-Einbindung</td><td>Embedded Coder</td><td class="k">Legacy Code Tool + MinGW</td></tr>
+      <tr><td>PIL</td><td>Coder + Connectivity-Package</td><td>Vektor-Replay über UDP</td></tr>
+      <tr><td>UDP aus MATLAB</td><td>Instrument Control Toolbox</td><td class="k">java.net.DatagramSocket</td></tr>
+    </tbody>
+  </table>
+
+  <p>Der Verzicht auf die Werkzeuge hatte einen Nebeneffekt, der über die Kostenfrage hinausgeht: Jeder Schritt musste verstanden werden, statt konfiguriert zu werden. Warum die Pole liegen, wo sie liegen; warum die Bandbreiten sich um Faktor drei bis fünf staffeln müssen; was Backward Euler im Integrator konkret bedeutet — das steht am Ende explizit im Code statt implizit in einer Toolbox.</p>
+</section>
+
+<!-- ============ 10 Offen ============ -->
+<section>
+  <div class="sec-label">10 · Ausblick</div>
+  <h2>Was noch offen ist</h2>
+
+  <ul>
+    <li><strong>Sollwertrampen statt Sprünge.</strong> Ein Positionssprung ist ein Stresstest, kein Betriebsfall. Eine begrenzte Trajektorie vermeidet Sättigung, große Neigungswinkel und Sprungflanken im Regler gleichermaßen.</li>
+    <li><strong>Testsuite auf die Kaskade erweitern.</strong> Die Streckentests T1–T8 sichern die Physik ab; für die Regelung fehlen die entsprechenden Regressionstests.</li>
+    <li><strong>Sensormodelle.</strong> Rauschen, Verzögerung und begrenzte Auflösung machen sichtbar, was im idealen Modell unsichtbar bleibt — etwa dass der ungefilterte Dämpfungszweig auf echten Messwerten unruhig wird.</li>
+    <li><strong>Geschwindigkeit im richtigen Frame.</strong> Der Dämpfungsterm nutzt die Body-Geschwindigkeit, während die Position im NED-Frame geregelt wird. Bei kleinen Winkeln und ψ ≈ 0 zulässig, bei echten Giermanövern nicht mehr.</li>
+    <li><strong>Multirate.</strong> Rate-Schleife schnell, äußere Schleifen langsamer — passend zur Bandbreitentrennung und wie in realen Flight Stacks üblich.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Quadrocopter-Flugregler · Modell bis Target</span>
+  <span>Simulink · C99 · AURIX TC399</span>
+  <span>20 001 Takte verifiziert · 3,9 µs je Takt</span>
+</footer>
+
+</div>
+</body>
+</html>
