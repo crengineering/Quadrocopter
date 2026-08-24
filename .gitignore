@@ -1,0 +1,33 @@
+# --- Vendor documentation: NEVER commit -------------------------------------
+# Datasheets, reference manuals, board guides and errata are copyrighted by
+# their vendors and must not be redistributed. Keep them locally in doc/.
+*.pdf
+
+# --- MATLAB / Simulink build and cache artefacts ----------------------------
+slprj/
+**/slprj/
+*.slxc
+codegen/
+*.autosave
+*.asv
+*.m~
+
+# Simulink model backups and lock files
+*.slx.r*
+*.slx.autosave
+*.slx.original
+~$*.slx
+
+# --- draw.io backups --------------------------------------------------------
+.$*.bkp
+*.drawio.bkp
+*.drawio.dtmp
+
+# --- Results and measurement data -------------------------------------------
+pil/results/
+*.mf4
+
+# --- OS noise ---------------------------------------------------------------
+Thumbs.db
+desktop.ini
+.DS_Store
