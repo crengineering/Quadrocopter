@@ -317,7 +317,8 @@ reach into spinning propellers. The warranty and liability disclaimer in
 
 [MIT](LICENSE) © 2026 Chris Riedl — for everything in this repository: models,
 MATLAB scripts, C sources, tests and documentation. No third-party code is
-vendored here.
+vendored here. Details on the tools that are *not* redistributed, on the
+generated `.mexw64` binaries, and the trademark notice: [NOTICE.md](NOTICE.md).
 
 MATLAB®, Simulink® and Embedded Coder® are registered trademarks of The MathWorks,
 Inc. and are **not** shipped with this repository; they are licensed separately.
