@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUAD-6DOF · Flugdynamik in Simulink ohne Toolboxen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAFBFC;
+  --grid:#E3E9EF;
+  --ink:#16212B;
+  --ink-soft:#4A5A68;
+  --blue:#1D5FBF;
+  --blue-deep:#123E7C;
+  --orange:#E8590C;
+  --ax-x:#D6453D;
+  --ax-y:#2E8B57;
+  --ax-z:#2B6CB0;
+  --panel:#FFFFFF;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --disp:'Space Grotesk','IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto} *{transition:none!important;animation:none!important}}
+body{
+  background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px 96px}
+/* ---------- header ---------- */
+header{padding:64px 0 40px;border-bottom:3px solid var(--ink)}
+.doc-meta{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 26px;margin-bottom:22px}
+.doc-meta b{color:var(--blue-deep);font-weight:600}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(30px,5.4vw,52px);line-height:1.06;letter-spacing:-.015em;max-width:20ch}
+h1 .thin{color:var(--blue);font-weight:500}
+.lede{margin-top:20px;max-width:62ch;font-size:17.5px;color:var(--ink-soft)}
+.lede b{color:var(--ink)}
+/* ---------- sections ---------- */
+section{margin-top:72px;position:relative}
+.sec-head{display:flex;align-items:baseline;gap:16px;border-bottom:1.5px solid var(--ink);padding-bottom:10px;margin-bottom:26px}
+.sec-num{font-family:var(--mono);font-weight:600;font-size:14px;color:#fff;background:var(--ink);padding:3px 9px;letter-spacing:.06em;flex:none}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(21px,3vw,28px);letter-spacing:-.01em}
+h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:30px 0 10px;color:var(--blue-deep)}
+p{margin:0 0 14px;max-width:74ch}
+p.note{font-size:14.5px;color:var(--ink-soft)}
+strong{font-weight:600}
+em{font-style:italic}
+ul,ol{margin:0 0 16px 22px;max-width:72ch}
+li{margin-bottom:7px}
+li::marker{color:var(--blue);font-weight:600}
+a{color:var(--blue)}
+code{font-family:var(--mono);font-size:.88em;background:#EDF2F8;border:1px solid #D8E2EE;padding:1px 5px;border-radius:3px;white-space:nowrap}
+/* ---------- callouts / boxes ---------- */
+.box{background:var(--panel);border:1.5px solid var(--ink);padding:18px 22px;margin:20px 0;box-shadow:5px 5px 0 #D9E2EB}
+.box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);font-weight:600;display:block;margin-bottom:8px}
+.box.blue .tag{color:var(--blue)}
+.box p:last-child{margin-bottom:0}
+/* ---------- equations ---------- */
+.eq{font-family:'Times New Roman',Georgia,serif;font-size:19px;background:var(--panel);border-left:4px solid var(--blue);padding:16px 22px;margin:16px 0;overflow-x:auto;box-shadow:4px 4px 0 #D9E2EB}
+.eq .lbl{float:right;font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-left:16px}
+.eq i{font-style:italic}
+.eq sub,.eq sup{font-size:.68em}
+.eq .vec{font-weight:700;font-style:italic}
+.eq .mat{font-weight:700}
+/* ---------- symbol legends ---------- */
+.leg{list-style:none;margin:0 0 18px;padding:10px 14px;background:#F1F6FB;border:1px solid #D8E2EE;border-left:4px solid #9FB8D6;
+  display:grid;grid-template-columns:1fr 1fr;gap:3px 24px;font-size:13.5px;max-width:none}
+@media(max-width:700px){.leg{grid-template-columns:1fr}}
+.leg::before{content:"wobei:";grid-column:1/-1;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:2px}
+.leg li{margin:0}
+.leg .sy{font-family:var(--mono);font-weight:600;color:var(--blue-deep)}
+.leg .un{color:var(--ink-soft);font-size:12.5px}
+/* ---------- code ---------- */
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.55;background:#101820;color:#DCE6F0;padding:18px 20px;overflow-x:auto;margin:16px 0;border-top:3px solid var(--orange)}
+pre .cm{color:#6C8CA6}
+pre .kw{color:#7EC4FF}
+pre .st{color:#F0B36A}
+pre .fn{font-family:var(--mono);display:block;color:#8FE38F;font-size:12px;margin-bottom:10px;letter-spacing:.08em}
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;margin:16px 0;background:var(--panel);font-size:14.5px;box-shadow:4px 4px 0 #D9E2EB}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-align:left;background:var(--ink);color:#fff;padding:9px 12px;font-weight:500}
+td{border:1px solid #D8E2EE;padding:8px 12px;vertical-align:top}
+td.m{font-family:var(--mono);font-size:13px;white-space:nowrap}
+tr:nth-child(even) td{background:#F4F8FB}
+/* ---------- diagrams ---------- */
+.dia{background:var(--panel);border:1.5px solid var(--ink);padding:14px;margin:20px 0;box-shadow:5px 5px 0 #D9E2EB;overflow-x:auto}
+.dia svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.dia .cap{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-top:10px;text-align:center;letter-spacing:.04em}
+/* ---------- interactive 6dof panel ---------- */
+.panel6{background:var(--panel);border:2px solid var(--ink);margin:26px 0;box-shadow:7px 7px 0 var(--blue);overflow:hidden}
+.panel6 .phead{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;padding:9px 16px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.panel6 .phead .dot{color:var(--orange)}
+.pgrid{display:grid;grid-template-columns:1fr 300px;gap:0}
+@media(max-width:760px){.pgrid{grid-template-columns:1fr}}
+.pview{padding:6px;background:
+  linear-gradient(#EDF2F7 1px,transparent 1px),linear-gradient(90deg,#EDF2F7 1px,transparent 1px);
+  background-size:24px 24px;background-color:#FBFDFF}
+.pview svg{display:block;width:100%;height:auto}
+.pctl{border-left:1.5px solid var(--ink);padding:16px 18px;background:#F6F9FC}
+@media(max-width:760px){.pctl{border-left:none;border-top:1.5px solid var(--ink)}}
+.pctl h4{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 8px}
+.pctl h4:first-child{margin-top:0}
+.sl{display:grid;grid-template-columns:64px 1fr 62px;align-items:center;gap:10px;margin-bottom:8px}
+.sl label{font-family:var(--mono);font-size:13px;font-weight:600}
+.sl label.x{color:var(--ax-x)} .sl label.y{color:var(--ax-y)} .sl label.z{color:var(--ax-z)}
+.sl output{font-family:var(--mono);font-size:12.5px;text-align:right;color:var(--ink-soft)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#C9D6E4;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--ink);cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--ink);cursor:pointer;border-radius:0}
+.pbtn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;background:#fff;border:1.5px solid var(--ink);padding:6px 10px;cursor:pointer;box-shadow:2px 2px 0 #C9D6E4}
+.pbtn:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
+.pbtn:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.motorbars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.mb{text-align:center}
+.mb .bar{height:64px;background:#E4EBF3;border:1px solid #C9D6E4;position:relative;overflow:hidden}
+.mb .fill{position:absolute;bottom:0;left:0;right:0;background:var(--blue);transition:height .12s ease}
+.mb .fill.hot{background:var(--orange)}
+.mb .lab{font-family:var(--mono);font-size:11px;margin-top:4px;color:var(--ink-soft)}
+.mb .val{font-family:var(--mono);font-size:11.5px;font-weight:600}
+.rmat{font-family:var(--mono);font-size:12px;background:#fff;border:1px solid #C9D6E4;padding:8px 10px;margin-top:6px;white-space:pre;line-height:1.7;overflow-x:auto}
+/* ---------- checklist ---------- */
+.check li{list-style:none;position:relative;padding-left:30px;margin-bottom:10px}
+.check li::before{content:"";position:absolute;left:0;top:4px;width:15px;height:15px;border:2px solid var(--ink);background:#fff}
+.check{margin-left:0}
+/* ---------- footer ---------- */
+footer{margin-top:80px;border-top:3px solid var(--ink);padding-top:18px;font-family:var(--mono);font-size:12px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 28px}
+.kbd-note{font-size:13px;color:var(--ink-soft);font-family:var(--mono);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="doc-meta">
+    <span>DOK <b>QUAD-6DOF-01</b></span>
+    <span>PLATTFORM <b>MATLAB / SIMULINK — ohne Toolboxen</b></span>
+    <span>ZIEL <b>Modell · Verifikation · Regelung</b></span>
+  </div>
+  <h1>Flugdynamik eines Quadrocopters<br><span class="thin">— von der Gleichung zum getesteten Simulink-Modell</span></h1>
+  <p class="lede">Vollständige Bauanleitung für ein nichtlineares <b>6-DoF-Starrkörpermodell</b> mit Rotor- und Mixermodell, ausschließlich mit <b>Basis-Simulink-Blöcken</b> und Basis-MATLAB. Danach: systematische Open-Loop-Verifikation, Trimmung, Linearisierung und Kaskadenregelung — aufgebaut wie ein Flugversuchsprogramm.</p>
+</header>
+
+<!-- ============================================================ 01 -->
+<section id="s01">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Systemarchitektur — was du am Ende gebaut hast</h2></div>
+  <p>Das Gesamtmodell besteht aus vier Subsystemen in Serie plus Rückführung. Diese Trennung ist nicht kosmetisch: Sie entspricht der physikalischen Kausalkette und macht jedes Teilsystem <strong>einzeln testbar</strong> — genau das nutzt du später in Abschnitt 06.</p>
+
+  <div class="dia">
+    <svg viewBox="0 0 920 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Signalflussdiagramm des Gesamtmodells">
+      <defs>
+        <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker>
+      </defs>
+      <style>
+        .bx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .bt{font:600 13px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .bs{font:11px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .sig{font:600 12px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .ln{stroke:#16212B;stroke-width:1.6;fill:none;marker-end:url(#arr)}
+      </style>
+      <text x="42" y="86" class="sig">ω_cmd</text>
+      <text x="42" y="100" class="bs">4×1</text>
+      <path class="ln" d="M70,92 L118,92"/>
+      <rect class="bx" x="120" y="60" width="150" height="64"/>
+      <text x="195" y="87" class="bt">Aktuatorik</text>
+      <text x="195" y="105" class="bs">4× PT1 + Sättigung</text>
+      <path class="ln" d="M270,92 L318,92"/>
+      <text x="294" y="82" class="sig">ω</text>
+      <rect class="bx" x="320" y="60" width="160" height="64"/>
+      <text x="400" y="87" class="bt">Kräfte &amp; Momente</text>
+      <text x="400" y="105" class="bs">Schub, Mixer, Drag</text>
+      <path class="ln" d="M480,92 L528,92"/>
+      <text x="504" y="78" class="sig">F_b</text>
+      <text x="504" y="112" class="sig">M_b</text>
+      <rect class="bx" x="530" y="60" width="160" height="64"/>
+      <text x="610" y="87" class="bt">6-DoF-Dynamik</text>
+      <text x="610" y="105" class="bs">Newton–Euler (Body)</text>
+      <path class="ln" d="M690,92 L738,92"/>
+      <text x="714" y="78" class="sig">v_b</text>
+      <text x="714" y="112" class="sig">ω_b</text>
+      <rect class="bx" x="740" y="60" width="150" height="64"/>
+      <text x="815" y="87" class="bt">Kinematik</text>
+      <text x="815" y="105" class="bs">R(Φ), Euler-Raten</text>
+      <path class="ln" d="M815,124 L815,168 L400,168 L400,128"/>
+      <text x="607" y="184" class="bs">Rückführung der Zustände (Lage → Kräfte in Body-Koordinaten, Zustände → Regler)</text>
+      <text x="875" y="50" class="sig">x, v, Φ, ω</text>
+      <path class="ln" d="M890,60 L890,30"/>
+    </svg>
+    <div class="cap">ABB. 1 — SIGNALFLUSS: ω_cmd → AKTUATORIK → KRÄFTE/MOMENTE → 6-DOF → KINEMATIK → 12 ZUSTÄNDE</div>
+  </div>
+
+  <div class="box blue">
+    <span class="tag">Warum ohne Toolboxen der bessere Lernweg ist</span>
+    <p>Aerospace Blockset und UAV Toolbox verstecken genau die Stellen, an denen man Flugdynamik wirklich versteht: die Kreuzprodukte in den Body-Gleichungen, die Rotationsmatrix, die Singularität der Euler-Raten. Alles hier gezeigte braucht nur: <code>Integrator</code>, <code>Gain</code>, <code>Product</code>, <code>Sum</code>, <code>Mux/Demux</code>, <code>Saturation</code>, <code>Transfer Fcn</code>, <code>MATLAB Function</code> und den Standard-<code>PID Controller</code>-Block — alles Basis-Simulink. Auch <code>linmod</code> (Abschnitt 07) gehört zu Simulink selbst, nicht zu einer Toolbox.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 02 -->
+<section id="s02">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Koordinatensysteme &amp; die 12 Zustände</h2></div>
+  <p>Zwei Bezugssysteme, konsequent durchgehalten — 90&nbsp;% aller Fehler in selbstgebauten Modellen sind Vorzeichen- und Frame-Fehler:</p>
+  <ul>
+    <li><strong>Inertialsystem NED</strong> (North–East–Down), erdfest: <span style="color:var(--ax-x);font-weight:600">x → Nord</span>, <span style="color:var(--ax-y);font-weight:600">y → Ost</span>, <span style="color:var(--ax-z);font-weight:600">z → nach unten</span>. Vorteil: Die Gravitation ist immer <code>[0; 0; +m·g]</code>. Konsequenz: <em>Höhe = −z</em>. Das irritiert anfangs, ist aber Luftfahrt-Standard.</li>
+    <li><strong>Körperfestes System (Body)</strong>, im Schwerpunkt: <span style="color:var(--ax-x);font-weight:600">x_b → Nase/vorn</span>, <span style="color:var(--ax-y);font-weight:600">y_b → rechts</span>, <span style="color:var(--ax-z);font-weight:600">z_b → unten</span>. Der Rotorschub zeigt in <code>−z_b</code>.</li>
+  </ul>
+
+  <table>
+    <thead><tr><th>Gruppe</th><th>Symbol</th><th>Frame</th><th>Bedeutung</th><th>DGL kommt aus</th></tr></thead>
+    <tbody>
+      <tr><td>Position</td><td class="m">x, y, z</td><td>NED</td><td>Ort des Schwerpunkts</td><td class="m">ẋ_ned = R · v_b</td></tr>
+      <tr><td>Geschwindigkeit</td><td class="m">u, v, w</td><td>Body</td><td>Translationsgeschwindigkeit</td><td class="m">Newton (Body-Frame)</td></tr>
+      <tr><td>Lage (Euler)</td><td class="m">φ, θ, ψ</td><td>—</td><td>Roll, Nick (Pitch), Gier (Yaw)</td><td class="m">Φ̇ = W(Φ) · ω_b</td></tr>
+      <tr><td>Drehraten</td><td class="m">p, q, r</td><td>Body</td><td>Winkelgeschwindigkeit</td><td class="m">Euler (Drallsatz)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Merksatz:</strong> Kräfte, Momente und Trägheiten leben im Body-Frame (dort ist die Trägheitsmatrix konstant). Position und Lage leben im Inertialsystem. Die Kinematik-Blöcke sind die Übersetzer dazwischen.</p>
+
+  <h3>Interaktiv: die 6 Freiheitsgrade begreifen</h3>
+  <p>Drei Translationen (x, y, z) + drei Rotationen (φ, θ, ψ) = 6 DoF. Bewege die Regler: Links siehst du den Körper mit seinem <strong>mitbewegten Body-Dreibein</strong> über dem NED-Bodengitter, rechts die live berechnete Rotationsmatrix <strong>R</strong> und — als Vorgriff auf Abschnitt 03 — wie der Mixer einen Lagebefehl auf die vier Motordrehzahlen verteilt.</p>
+
+  <!-- ================= interactive 6dof panel ================= -->
+  <div class="panel6">
+    <div class="phead"><span><span class="dot">●</span> 6-DOF-INSTRUMENT</span><span>BODY-FRAME vs. NED</span></div>
+    <div class="pgrid">
+      <div class="pview"><svg id="quadsvg" viewBox="0 0 560 430" xmlns="http://www.w3.org/2000/svg" aria-label="Interaktive 3D-Ansicht des Quadrocopters"></svg></div>
+      <div class="pctl">
+        <h4>Rotation (Euler-Winkel)</h4>
+        <div class="sl"><label class="x" for="rphi">φ Roll</label><input type="range" id="rphi" min="-45" max="45" value="0" step="1"><output id="ophi">0°</output></div>
+        <div class="sl"><label class="y" for="rthe">θ Pitch</label><input type="range" id="rthe" min="-45" max="45" value="0" step="1"><output id="othe">0°</output></div>
+        <div class="sl"><label class="z" for="rpsi">ψ Yaw</label><input type="range" id="rpsi" min="-90" max="90" value="0" step="1"><output id="opsi">0°</output></div>
+        <h4>Translation (NED)</h4>
+        <div class="sl"><label class="x" for="tx">x Nord</label><input type="range" id="tx" min="-1" max="1" value="0" step="0.05"><output id="otx">0.0 m</output></div>
+        <div class="sl"><label class="y" for="ty">y Ost</label><input type="range" id="ty" min="-1" max="1" value="0" step="0.05"><output id="oty">0.0 m</output></div>
+        <div class="sl"><label class="z" for="tz">−z Höhe</label><input type="range" id="tz" min="0" max="1.6" value="0.8" step="0.05"><output id="otz">0.8 m</output></div>
+        <div style="margin-top:10px"><button class="pbtn" id="resetBtn" type="button">Zurücksetzen</button></div>
+        <h4>Rotationsmatrix R(φ,θ,ψ)</h4>
+        <div class="rmat" id="rmat"></div>
+        <h4>Mixer: ω-Verteilung für diesen Lagebefehl</h4>
+        <div class="motorbars">
+          <div class="mb"><div class="bar"><div class="fill" id="f1"></div></div><div class="val" id="v1"></div><div class="lab">M1 VR ↺</div></div>
+          <div class="mb"><div class="bar"><div class="fill" id="f2"></div></div><div class="val" id="v2"></div><div class="lab">M2 HR ↻</div></div>
+          <div class="mb"><div class="bar"><div class="fill" id="f3"></div></div><div class="val" id="v3"></div><div class="lab">M3 HL ↺</div></div>
+          <div class="mb"><div class="bar"><div class="fill" id="f4"></div></div><div class="val" id="v4"></div><div class="lab">M4 VL ↻</div></div>
+        </div>
+        <p class="kbd-note">V/H = vorn/hinten · R/L = rechts/links<br>↺ = CCW, ↻ = CW (Draufsicht)</p>
+      </div>
+    </div>
+  </div>
+  <p class="note">Beobachte: Bei reinem Yaw (ψ) drehen sich x_b und y_b, z_b bleibt stehen. Bei Pitch (θ) hebt/senkt sich die Nase. Und im Mixer siehst du sofort: Roll nach rechts (+φ) → linke Motoren M3/M4 schneller; Yaw (+ψ, Nase nach rechts) → die CCW-Motoren M1/M3 schneller, weil ihr Reaktionsmoment den Rumpf im Uhrzeigersinn mitdreht.</p>
+</section>
+
+<!-- ============================================================ 03 -->
+<section id="s03">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Rotormodell &amp; Mixer</h2></div>
+
+  <h3>3.1 — Statik: Schub und Reaktionsmoment</h3>
+  <p>Im stationären Betrieb gilt in guter Näherung ein quadratischer Zusammenhang zwischen Rotordrehzahl und Schub bzw. Reaktionsmoment (Impulstheorie / Blattelemententheorie, konstante Koeffizienten für einen festen Propeller):</p>
+  <div class="eq"><span class="lbl">(3.1)</span><i>T<sub>i</sub></i> = <i>k<sub>T</sub></i> · <i>ω<sub>i</sub></i><sup>2</sup> &nbsp;&nbsp;&nbsp;&nbsp; <i>Q<sub>i</sub></i> = <i>k<sub>Q</sub></i> · <i>ω<sub>i</sub></i><sup>2</sup></div>
+  <ul class="leg"><li><span class="sy">T<sub>i</sub></span> — Schub von Rotor i <span class="un">[N]</span></li><li><span class="sy">Q<sub>i</sub></span> — aerodynam. Reaktionsmoment von Rotor i <span class="un">[Nm]</span></li><li><span class="sy">ω<sub>i</sub></span> — Drehzahl von Rotor i <span class="un">[rad/s]</span></li><li><span class="sy">k<sub>T</sub></span> — Schubkoeffizient des Propellers <span class="un">[N/(rad/s)²]</span></li><li><span class="sy">k<sub>Q</sub></span> — Momentenkoeffizient des Propellers <span class="un">[Nm/(rad/s)²]</span></li></ul><p><i>k<sub>T</sub></i> und <i>k<sub>Q</sub></i> bestimmst du real auf einem Schubprüfstand; für die Simulation reichen plausible Literaturwerte (siehe Parameterskript in 05.1). Wichtig ist nur die Struktur.</p>
+
+  <h3>3.2 — Dynamik: Motor + ESC als PT1</h3>
+  <p>Motor und Regler folgen dem Drehzahlbefehl nicht sofort. Ein PT1-Glied pro Motor genügt als Modell erster Ordnung:</p>
+  <div class="eq"><span class="lbl">(3.2)</span>τ · ω̇<sub>i</sub> + ω<sub>i</sub> = ω<sub>cmd,i</sub> &nbsp;&nbsp;⇔&nbsp;&nbsp; G(s) = 1 / (τ·s + 1), &nbsp; τ ≈ 0.02 … 0.1 s</div>
+  <ul class="leg"><li><span class="sy">ω<sub>cmd,i</sub></span> — befohlene Drehzahl (Reglerausgang) <span class="un">[rad/s]</span></li><li><span class="sy">ω<sub>i</sub></span> — tatsächliche Drehzahl <span class="un">[rad/s]</span></li><li><span class="sy">τ</span> — Zeitkonstante von Motor + ESC <span class="un">[s]</span></li><li><span class="sy">G(s)</span> — Übertragungsfunktion, s = Laplace-Variable</li></ul><p>In Simulink: vier <code>Transfer Fcn</code>-Blöcke <code>[1]/[tau 1]</code> (oder ein Block mit Vektorsignal), gefolgt von <code>Saturation</code> auf <code>[0, ω_max]</code>. Die Sättigung ist wichtig — ohne sie kann dein Regler später physikalisch unmögliche Drehzahlen anfordern und du merkst es nie.</p>
+
+  <h3>3.3 — Geometrie und Mixer-Matrix (X-Konfiguration)</h3>
+  <p>Konvention in diesem Dokument (Draufsicht, x_b nach vorn): <strong>M1 vorn-rechts (CCW), M2 hinten-rechts (CW), M3 hinten-links (CCW), M4 vorn-links (CW)</strong>. Effektiver Hebelarm pro Achse: <i>d</i> = <i>l</i>/√2 bei Armlänge <i>l</i>.</p>
+
+  <div class="dia">
+    <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Draufsicht X-Konfiguration mit Motornummern und Drehrichtungen">
+      <style>
+        .arm{stroke:#16212B;stroke-width:6;stroke-linecap:round}
+        .rot{fill:none;stroke-width:2.5}
+        .mt{font:600 14px 'IBM Plex Mono',monospace;text-anchor:middle}
+        .st2{font:11px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .axl{font:600 13px 'IBM Plex Mono',monospace}
+      </style>
+      <defs>
+        <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 z" fill="#16212B"/></marker>
+        <marker id="arrR" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 z" fill="#E8590C"/></marker>
+      </defs>
+      <line class="arm" x1="240" y1="70" x2="400" y2="230"/>
+      <line class="arm" x1="400" y1="70" x2="240" y2="230"/>
+      <rect x="300" y="130" width="40" height="40" fill="#fff" stroke="#16212B" stroke-width="2.5"/>
+      <!-- axes -->
+      <line x1="320" y1="150" x2="320" y2="30" stroke="#D6453D" stroke-width="2.5" marker-end="url(#arr2)"/>
+      <text class="axl" x="330" y="40" fill="#D6453D">x_b (vorn)</text>
+      <line x1="320" y1="150" x2="470" y2="150" stroke="#2E8B57" stroke-width="2.5" marker-end="url(#arr2)"/>
+      <text class="axl" x="440" y="140" fill="#2E8B57">y_b</text>
+      <text class="axl" x="308" y="196" fill="#2B6CB0">z_b ⊗ (nach unten)</text>
+      <!-- motors -->
+      <g><circle cx="400" cy="70" r="30" fill="#fff" stroke="#1D5FBF" stroke-width="2.5"/><path class="rot" stroke="#E8590C" d="M 424 60 A 26 26 0 1 1 424 80" marker-end="url(#arrR)"/><text class="mt" x="400" y="75" fill="#16212B">M1</text><text class="st2" x="400" y="112">CCW · vorn-rechts</text></g>
+      <g><circle cx="400" cy="230" r="30" fill="#fff" stroke="#1D5FBF" stroke-width="2.5"/><path class="rot" stroke="#16212B" d="M 424 240 A 26 26 0 1 0 424 220" marker-end="url(#arr2)"/><text class="mt" x="400" y="235">M2</text><text class="st2" x="400" y="278">CW · hinten-rechts</text></g>
+      <g><circle cx="240" cy="230" r="30" fill="#fff" stroke="#1D5FBF" stroke-width="2.5"/><path class="rot" stroke="#E8590C" d="M 264 220 A 26 26 0 1 1 264 240" marker-end="url(#arrR)"/><text class="mt" x="240" y="235">M3</text><text class="st2" x="240" y="278">CCW · hinten-links</text></g>
+      <g><circle cx="240" cy="70" r="30" fill="#fff" stroke="#1D5FBF" stroke-width="2.5"/><path class="rot" stroke="#16212B" d="M 264 80 A 26 26 0 1 0 264 60" marker-end="url(#arr2)"/><text class="mt" x="240" y="75">M4</text><text class="st2" x="240" y="112">CW · vorn-links</text></g>
+    </svg>
+    <div class="cap">ABB. 2 — X-KONFIGURATION, DRAUFSICHT. z_b ZEIGT IN DIE BILDEBENE HINEIN (NED-KONVENTION).</div>
+  </div>
+
+  <p>Gesamtschub und die drei Momente aus den vier Einzelschüben (Herleitung: <i>M</i> = Σ <i>r<sub>i</sub></i> × <i>F<sub>i</sub></i> plus Reaktionsmomente um z_b):</p>
+  <div class="eq"><span class="lbl">(3.3)</span>
+  <table style="border:none;box-shadow:none;background:transparent;margin:0"><tr>
+  <td style="border:none;font-size:22px;padding:0 6px">⎡<br>⎢<br>⎢<br>⎣</td>
+  <td style="border:none;padding:0;text-align:center;line-height:1.9"><i>T</i><br><i>τ<sub>x</sub></i><br><i>τ<sub>y</sub></i><br><i>τ<sub>z</sub></i></td>
+  <td style="border:none;font-size:22px;padding:0 6px">⎤<br>⎥<br>⎥<br>⎦</td>
+  <td style="border:none;padding:0 10px">=</td>
+  <td style="border:none;font-size:22px;padding:0 6px">⎡<br>⎢<br>⎢<br>⎣</td>
+  <td style="border:none;padding:0;text-align:center;line-height:1.9;font-family:var(--mono);font-size:14px">
+  &nbsp;k<sub>T</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k<sub>T</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k<sub>T</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k<sub>T</sub><br>
+  −d·k<sub>T</sub>&nbsp;&nbsp;−d·k<sub>T</sub>&nbsp;&nbsp;+d·k<sub>T</sub>&nbsp;&nbsp;+d·k<sub>T</sub><br>
+  +d·k<sub>T</sub>&nbsp;&nbsp;−d·k<sub>T</sub>&nbsp;&nbsp;−d·k<sub>T</sub>&nbsp;&nbsp;+d·k<sub>T</sub><br>
+  +k<sub>Q</sub>&nbsp;&nbsp;&nbsp;&nbsp;−k<sub>Q</sub>&nbsp;&nbsp;&nbsp;&nbsp;+k<sub>Q</sub>&nbsp;&nbsp;&nbsp;&nbsp;−k<sub>Q</sub></td>
+  <td style="border:none;font-size:22px;padding:0 6px">⎤<br>⎥<br>⎥<br>⎦</td>
+  <td style="border:none;font-size:22px;padding:0 6px">⎡<br>⎢<br>⎢<br>⎣</td>
+  <td style="border:none;padding:0;text-align:center;line-height:1.9"><i>ω<sub>1</sub></i><sup>2</sup><br><i>ω<sub>2</sub></i><sup>2</sup><br><i>ω<sub>3</sub></i><sup>2</sup><br><i>ω<sub>4</sub></i><sup>2</sup></td>
+  <td style="border:none;font-size:22px;padding:0 6px">⎤<br>⎥<br>⎥<br>⎦</td>
+  </tr></table>
+  </div>
+
+  <ul class="leg"><li><span class="sy">T</span> — Gesamtschub aller vier Rotoren, wirkt entlang −z_b <span class="un">[N]</span></li><li><span class="sy">τ<sub>x</sub>, τ<sub>y</sub>, τ<sub>z</sub></span> — Momente um die Body-Achsen (Roll, Pitch, Yaw) <span class="un">[Nm]</span></li><li><span class="sy">d = l/√2</span> — effektiver Hebelarm in X-Konfiguration <span class="un">[m]</span></li><li><span class="sy">l</span> — Armlänge Rumpfmitte → Rotorachse <span class="un">[m]</span></li><li><span class="sy">ω<sub>1…4</sub></span> — Drehzahlen der Motoren M1–M4 <span class="un">[rad/s]</span></li></ul>
+  <div class="box">
+    <span class="tag">Achtung: Vorzeichen sind konventionsabhängig</span>
+    <p>Die Vorzeichen in Zeile 2–4 hängen von Motornummerierung, Drehrichtungen und Achsdefinition ab. In der Literatur findest du ein Dutzend Varianten — <strong>keine ist „die richtige“</strong>. Entscheidend ist, dass deine Matrix zu <em>deiner</em> Skizze passt. Genau dafür gibt es die Vorzeichentests in Abschnitt 06: Ein Modell, dessen Vorzeichen du nicht per Test verifiziert hast, ist wertlos.</p>
+  </div>
+
+  <p>In Simulink: <code>Product</code> (elementweise, <code>u.^2</code> via <code>Math Function → square</code>) → <code>Gain</code> im Matrix-Modus (<em>Multiplication: Matrix(K*u)</em>) mit der 4×4-Matrix aus dem Workspace. Ein einziger Gain-Block ersetzt so das ganze Mixing.</p>
+
+  <h3>3.4 — Aerodynamischer Widerstand (einfachstes brauchbares Modell)</h3>
+  <div class="eq"><span class="lbl">(3.4)</span><span class="vec">F</span><sub>drag</sub> = −diag(<i>c<sub>x</sub></i>, <i>c<sub>y</sub></i>, <i>c<sub>z</sub></i>) · <span class="vec">v</span><sub>b</sub> · |<span class="vec">v</span><sub>b</sub>|&nbsp;&nbsp;&nbsp;(oder linear: −<i>C</i>·<span class="vec">v</span><sub>b</sub>)</div>
+  <ul class="leg"><li><span class="sy"><b>F</b><sub>drag</sub></span> — Widerstandskraft im Body-Frame <span class="un">[N]</span></li><li><span class="sy">c<sub>x</sub>, c<sub>y</sub>, c<sub>z</sub></span> — Widerstandsbeiwerte je Achse (quadrat. Ansatz) <span class="un">[N/(m/s)²]</span></li><li><span class="sy"><b>v</b><sub>b</sub> = [u; v; w]</span> — Geschwindigkeit im Body-Frame <span class="un">[m/s]</span></li><li><span class="sy">C</span> — Widerstandsmatrix beim linearen Ansatz <span class="un">[N/(m/s)]</span></li></ul><p class="note">Für Reglerentwurf im Schwebeflug ist selbst das optional — aber ohne jede Dämpfung driftet das Modell auf Dauer, und der lineare Term hilft der numerischen Stabilität. Starte mit dem linearen Ansatz.</p>
+</section>
+
+<!-- ============================================================ 04 -->
+<section id="s04">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Die Bewegungsgleichungen (Newton–Euler, Body-Frame)</h2></div>
+
+  <h3>4.1 — Translation</h3>
+  <p>Newton im <em>rotierenden</em> Body-Frame — deshalb der Zusatzterm ω × v (scheinbare Beschleunigung durch Frame-Drehung):</p>
+  <div class="eq"><span class="lbl">(4.1)</span><i>m</i> · (<span class="vec">v̇</span><sub>b</sub> + <span class="vec">ω</span><sub>b</sub> × <span class="vec">v</span><sub>b</sub>) = <span class="mat">R</span><sup>T</sup>·[0; 0; <i>m·g</i>] + [0; 0; −<i>T</i>] + <span class="vec">F</span><sub>drag</sub></div>
+  <ul class="leg"><li><span class="sy">m</span> — Abflugmasse <span class="un">[kg]</span></li><li><span class="sy"><b>v</b><sub>b</sub> = [u; v; w]</span> — Geschwindigkeit im Body-Frame <span class="un">[m/s]</span></li><li><span class="sy"><b>v̇</b><sub>b</sub></span> — deren zeitliche Ableitung (Beschleunigung) <span class="un">[m/s²]</span></li><li><span class="sy"><b>ω</b><sub>b</sub> = [p; q; r]</span> — Drehrate im Body-Frame <span class="un">[rad/s]</span></li><li><span class="sy">×</span> — Kreuzprodukt zweier Vektoren</li><li><span class="sy"><b>R</b></span> — Rotationsmatrix Body→NED; <b>R</b><sup>T</sup> dreht NED→Body</li><li><span class="sy">g</span> — Erdbeschleunigung (9.81) <span class="un">[m/s²]</span></li><li><span class="sy">T</span> — Gesamtschub aus Gl. (3.3) <span class="un">[N]</span></li></ul><p>Drei Kräfte: (1) Gravitation — im NED konstant, muss mit <span class="mat">R</span><sup>T</sup> in den Body-Frame gedreht werden. (2) Gesamtschub entlang −z_b. (3) Widerstand. Aufgelöst nach <span class="vec">v̇</span><sub>b</sub> und integriert liefert das u, v, w.</p>
+
+  <h3>4.2 — Rotation (Drallsatz)</h3>
+  <div class="eq"><span class="lbl">(4.2)</span><span class="mat">I</span> · <span class="vec">ω̇</span><sub>b</sub> + <span class="vec">ω</span><sub>b</sub> × (<span class="mat">I</span> · <span class="vec">ω</span><sub>b</sub>) = <span class="vec">τ</span> = [<i>τ<sub>x</sub></i>; <i>τ<sub>y</sub></i>; <i>τ<sub>z</sub></i>]</div>
+  <ul class="leg"><li><span class="sy"><b>I</b> = diag(I<sub>xx</sub>, I<sub>yy</sub>, I<sub>zz</sub>)</span> — Trägheitsmatrix um die Body-Achsen <span class="un">[kg·m²]</span></li><li><span class="sy"><b>ω</b><sub>b</sub> = [p; q; r]</span> — Drehrate, <b>ω̇</b><sub>b</sub> = Winkelbeschleunigung <span class="un">[rad/s]</span></li><li><span class="sy"><b>τ</b> = [τ<sub>x</sub>; τ<sub>y</sub>; τ<sub>z</sub>]</span> — Momentenvektor aus dem Mixer, Gl. (3.3) <span class="un">[Nm]</span></li><li><span class="sy">ω × (Iω)</span> — Kreiselterm (Achskopplung) <span class="un">[Nm]</span></li></ul><p>Mit diagonaler Trägheitsmatrix <span class="mat">I</span> = diag(I<sub>xx</sub>, I<sub>yy</sub>, I<sub>zz</sub>) — beim symmetrischen Quadrocopter eine sehr gute Annahme. Der Kreiselterm ω × (Iω) koppelt die Achsen: Er ist der Grund, warum ein schnell rollender Copter beim Nicken giert. Optional (für später): Gyroskopmomente der Rotoren <i>J<sub>r</sub></i>·(ω × e<sub>z</sub>)·Ω<sub>r</sub> — für den Einstieg weglassen.</p>
+  <p class="note">Notation: τ ohne Index ist hier der Momenten<em>vektor</em> — nicht zu verwechseln mit der skalaren Motor-Zeitkonstante τ aus Gl. (3.2). Beide Schreibweisen sind in der Literatur Standard, deshalb behalte ich sie bei.</p>
+
+  <h3>4.3 — Kinematik I: Lagewinkel aus Drehraten</h3>
+  <p>p, q, r sind <strong>nicht</strong> die Ableitungen von φ, θ, ψ — das ist der klassische Anfängerfehler. Die Umrechnung (ZYX-Konvention):</p>
+  <div class="eq"><span class="lbl">(4.3)</span>
+  ⎡φ̇⎤&nbsp;&nbsp;&nbsp;⎡1&nbsp;&nbsp;sinφ·tanθ&nbsp;&nbsp;cosφ·tanθ⎤&nbsp;⎡p⎤<br>
+  ⎢θ̇⎥&nbsp;=&nbsp;⎢0&nbsp;&nbsp;cosφ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;−sinφ&nbsp;&nbsp;&nbsp;&nbsp;⎥·⎢q⎥<br>
+  ⎣ψ̇⎦&nbsp;&nbsp;&nbsp;⎣0&nbsp;&nbsp;sinφ/cosθ&nbsp;&nbsp;cosφ/cosθ⎦&nbsp;⎣r⎦</div>
+  <ul class="leg"><li><span class="sy">φ, θ, ψ</span> — Euler-Winkel: Roll, Pitch, Yaw <span class="un">[rad]</span></li><li><span class="sy">φ̇, θ̇, ψ̇</span> — deren zeitliche Ableitungen (Euler-Raten) <span class="un">[rad/s]</span></li><li><span class="sy">p, q, r</span> — Drehraten um die Body-Achsen x_b, y_b, z_b <span class="un">[rad/s]</span></li><li><span class="sy"><b>W</b>(Φ)</span> — Transformationsmatrix Body-Raten → Euler-Raten</li></ul>
+  <div class="box">
+    <span class="tag">Singularität bei θ = ±90°</span>
+    <p>tanθ und 1/cosθ explodieren bei senkrechter Nase — der <em>Gimbal Lock</em>. Für Schwebe- und Normalflug (|θ| &lt; 45°) ist das irrelevant. Willst du später Loopings simulieren, ersetzt du Block K2 (siehe 05.3) durch Quaternionen-Kinematik — der Rest des Modells bleibt unverändert. Genau dafür lohnt die saubere Subsystem-Trennung.</p>
+  </div>
+
+  <h3>4.4 — Kinematik II: Position aus Geschwindigkeit</h3>
+  <div class="eq"><span class="lbl">(4.4)</span>[ẋ; ẏ; ż]<sub>NED</sub> = <span class="mat">R</span>(φ,θ,ψ) · [u; v; w]<sub>b</sub></div>
+  <p>mit der Rotationsmatrix Body→NED (ZYX, c = cos, s = sin):</p>
+  <div class="eq"><span class="lbl">(4.5)</span>
+  <span style="font-family:var(--mono);font-size:14px;line-height:1.9">
+  <span class="mat">R</span> = ⎡ cθ·cψ&nbsp;&nbsp;&nbsp;sφ·sθ·cψ−cφ·sψ&nbsp;&nbsp;&nbsp;cφ·sθ·cψ+sφ·sψ ⎤<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⎢ cθ·sψ&nbsp;&nbsp;&nbsp;sφ·sθ·sψ+cφ·cψ&nbsp;&nbsp;&nbsp;cφ·sθ·sψ−sφ·cψ ⎥<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⎣ −sθ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sφ·cθ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cφ·cθ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⎦</span></div>
+  <ul class="leg"><li><span class="sy">x, y, z</span> — Position im NED-Inertialsystem (z nach unten!) <span class="un">[m]</span></li><li><span class="sy">u, v, w</span> — Geschwindigkeit im Body-Frame <span class="un">[m/s]</span></li><li><span class="sy"><b>R</b>(φ,θ,ψ)</span> — Rotationsmatrix Body→NED, ZYX-Reihenfolge</li><li><span class="sy">c, s</span> — Kurzschreibweise: cθ = cos θ, sφ = sin φ usw.</li></ul><p class="note">Dieselbe Matrix siehst du live im 6-DoF-Instrument in Abschnitt 02 — vergleiche: bei φ=θ=ψ=0 ist R die Einheitsmatrix, bei reinem Yaw ändert sich nur der obere 2×2-Block.</p>
+  <p><strong>Damit sind alle 12 Zustandsgleichungen definiert:</strong> (4.1) → u,v,w · (4.2) → p,q,r · (4.3) → φ,θ,ψ · (4.4) → x,y,z.</p>
+</section>
+
+<!-- ============================================================ 05 -->
+<section id="s05">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Aufbau in Simulink — Schritt für Schritt</h2></div>
+
+  <h3>Schritt 5.1 — Projektstruktur &amp; Parameterskript</h3>
+  <p>Lege ein Projektverzeichnis mit <code>quad_params.m</code>, <code>quad_model.slx</code> und einem <code>tests/</code>-Ordner an. Alle Parameter kommen aus dem Skript in den Base Workspace — <strong>nie</strong> Zahlenwerte direkt in Blöcke tippen (das kennst du aus ASPICE-konformen Projekten: Datendefinition getrennt von der Architektur):</p>
+<pre><span class="fn">quad_params.m</span><span class="cm">% ---- Quadrocopter-Parameter (Beispiel: 450er-Klasse) ----</span>
+m    = 1.20;                <span class="cm">% kg   Abflugmasse</span>
+g    = 9.81;                <span class="cm">% m/s^2</span>
+l    = 0.225;               <span class="cm">% m    Armlänge Zentrum->Rotor</span>
+d    = l/sqrt(2);           <span class="cm">% m    effektiver Hebelarm (X-Konfig)</span>
+Ixx  = 1.0e-2;  Iyy = 1.0e-2;  Izz = 1.8e-2;   <span class="cm">% kg m^2</span>
+Ivec = [Ixx; Iyy; Izz];
+kT   = 3.0e-6;              <span class="cm">% N/(rad/s)^2   Schubkoeffizient</span>
+kQ   = 5.0e-8;              <span class="cm">% Nm/(rad/s)^2  Momentenkoeffizient</span>
+tau  = 0.05;                <span class="cm">% s    Zeitkonstante Motor+ESC</span>
+w_max= 1200;                <span class="cm">% rad/s max. Rotordrehzahl</span>
+Cd   = diag([0.10 0.10 0.15]);  <span class="cm">% linearer Drag [N/(m/s)]</span>
+
+<span class="cm">% ---- Mixer (Konvention aus Abschnitt 03) ----</span>
+MIX = [ kT     kT     kT     kT;
+       -d*kT  -d*kT   d*kT   d*kT;
+        d*kT  -d*kT  -d*kT   d*kT;
+        kQ    -kQ     kQ    -kQ ];
+
+<span class="cm">% ---- Trimm: Schwebedrehzahl aus 4*kT*w^2 = m*g ----</span>
+w_hover = sqrt(m*g/(4*kT));           <span class="cm">% -> 990.5 rad/s, muss &lt; w_max sein!</span>
+fprintf('Hover: %.1f rad/s (%.0f%% von w_max)\n', w_hover, 100*w_hover/w_max);</pre>
+  <p class="note">Der <code>fprintf</code>-Check am Ende ist Absicht: Liegt <code>w_hover</code> über ~70 % von <code>w_max</code>, hat dein virtueller Copter zu wenig Schubreserve zum Regeln — Parameter anpassen, bevor du weiterbaust.</p>
+
+  <h3>Schritt 5.2 — Subsystem A: Aktuatorik</h3>
+  <div class="box">
+    <span class="tag">Korrektur (frühere Version dieses Abschnitts war falsch)</span>
+    <p>Der kontinuierliche <code>Transfer Fcn</code>-Block ist <strong>strikt SISO</strong> — er akzeptiert nur skalare Eingänge und vektorisiert <em>nicht</em> automatisch. Ein 4×1-Signal am Eingang erzeugt genau den Fehler <em>„Invalid dimension has been specified for Input Port 1“</em>. Unten die zwei korrekten Umsetzungen.</p>
+  </div>
+
+  <p><strong>Variante 1 (empfohlen): PT1 aus elementaren Blöcken</strong> — die DGL τ·ω̇ = ω_cmd − ω direkt verdrahtet. Der <code>Integrator</code>-Block unterstützt Vektorsignale, damit läuft ein einziger Regelkreis für alle 4 Motoren:</p>
+  <ol>
+    <li><code>Inport</code> „w_cmd“ (4×1).</li>
+    <li><code>Sum</code> mit <em>List of signs</em> <code>+-</code>: Plus-Eingang = w_cmd, Minus-Eingang = Rückführung von ω (kommt aus Schritt 4).</li>
+    <li><code>Gain</code> mit Wert <code>1/tau</code> (skalarer Gain auf Vektorsignal — das funktioniert elementweise).</li>
+    <li><code>Integrator</code>: <em>Initial condition</em> = <code>zeros(4,1)</code> (bzw. <code>w_hover*ones(4,1)</code> für Hover-Tests ohne Anlauftransiente). Zusätzlich Haken bei <strong><em>Limit output</em></strong> setzen: <em>Lower</em> <code>0</code>, <em>Upper</em> <code>w_max</code> — das ersetzt den separaten Saturation-Block und ist physikalisch sauberer, weil auch der interne Zustand begrenzt wird (kein Windup des Motorzustands).</li>
+    <li>Integrator-Ausgang: (a) auf <code>Outport</code> „w“ und (b) zurück auf den Minus-Eingang des Sum-Blocks.</li>
+  </ol>
+  <div class="dia">
+    <svg viewBox="0 0 880 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PT1 aus elementaren Blöcken, vektorisiert für 4 Motoren">
+      <defs><marker id="arrA" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker></defs>
+      <style>
+        .abx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .abt{font:600 14px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .abs{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .aln{stroke:#16212B;stroke-width:1.5;fill:none;marker-end:url(#arrA)}
+        .adim{font:600 10.5px 'IBM Plex Mono',monospace;fill:#1D5FBF;text-anchor:middle}
+        .aprt{fill:#EAF1F9;stroke:#16212B;stroke-width:1.8}
+        .aprtt{font:600 11.5px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+      </style>
+      <rect class="aprt" x="16" y="58" width="90" height="32" rx="10"/><text class="aprtt" x="61" y="78">1: w_cmd</text>
+      <path class="aln" d="M106,74 L166,74"/><text class="adim" x="136" y="66">4×1</text>
+      <circle cx="196" cy="74" r="24" fill="#fff" stroke="#16212B" stroke-width="2"/><text class="abt" x="196" y="79">Σ</text>
+      <text style="font:600 11px 'IBM Plex Mono',monospace;fill:#E8590C" x="172" y="62">+</text>
+      <text style="font:600 11px 'IBM Plex Mono',monospace;fill:#E8590C" x="188" y="112">−</text>
+      <path class="aln" d="M220,74 L286,74"/><text class="adim" x="253" y="66">e 4×1</text>
+      <rect class="abx" x="288" y="50" width="96" height="48"/><text class="abt" x="336" y="71">1/tau</text><text class="abs" x="336" y="88">Gain</text>
+      <path class="aln" d="M384,74 L450,74"/><text class="adim" x="417" y="66">ω̇ 4×1</text>
+      <rect class="abx" x="452" y="46" width="120" height="56"/><text class="abt" x="512" y="70">1/s</text><text class="abs" x="512" y="88">Integrator · Limit: [0, w_max]</text>
+      <path class="aln" d="M572,74 L760,74"/><text class="adim" x="666" y="66">ω 4×1</text>
+      <rect class="aprt" x="762" y="58" width="72" height="32" rx="10"/><text class="aprtt" x="798" y="78">1: w</text>
+      <path class="aln" d="M660,74 L660,142 L196,142 L196,100"/>
+      <text class="abs" x="428" y="158">Rückführung: ω → Minus-Eingang (macht aus dem Integrator ein PT1)</text>
+    </svg>
+    <div class="cap">ABB. 1b — SUBSYSTEM A ALS VEKTORISIERTES PT1: τ·ω̇ = ω_cmd − ω. FÜNF BLÖCKE FÜR ALLE VIER MOTOREN.</div>
+  </div>
+  <p class="note">Warum das ein PT1 ist: Laplace-transformiert wird ω = (1/τs)·(ω_cmd − ω) → ω/ω_cmd = 1/(τs+1). Du hast damit nebenbei gelernt, wie man <em>jede</em> Übertragungsfunktion in Integratorform bringt — genau das macht Simulink intern auch.</p>
+
+  <p><strong>Variante 2 (kompakt): ein <code>State-Space</code>-Block</strong> — der einzige LTI-Basisblock, der echte MIMO-Signale kann. Dialogwerte: <em>A</em> = <code>-1/tau*eye(4)</code>, <em>B</em> = <code>1/tau*eye(4)</code>, <em>C</em> = <code>eye(4)</code>, <em>D</em> = <code>zeros(4)</code>. Nachteil: keine eingebaute Begrenzung → dahinter ein <code>Saturation</code>-Block mit <code>[0, w_max]</code> (der ist vektorfähig).</p>
+  <p class="note">Später kannst du hier Ausfallmodi einbauen (Motor 3 stirbt bei t = 5 s → <code>Switch</code>-Block) — ein hervorragendes Testszenario.</p>
+
+  <table>
+    <thead><tr><th>Port</th><th>Signal</th><th>Dim.</th><th>Kommt von / geht nach</th></tr></thead>
+    <tbody>
+      <tr><td class="m">In 1</td><td class="m">w_cmd</td><td class="m">4×1</td><td>Regler (Abschnitt 08) bzw. Test-Stimulus (06)</td></tr>
+      <tr><td class="m">Out 1</td><td class="m">w</td><td class="m">4×1</td><td>Subsystem B (Kräfte &amp; Momente)</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>Block (Variante 1)</th><th>Bibliothek</th><th>Entscheidende Dialog-Einstellung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">Sum</td><td>Math Operations</td><td class="m">List of signs: +-</td></tr>
+      <tr><td class="m">Gain „1/tau"</td><td>Math Operations</td><td class="m">Gain: 1/tau (skalar → elementweise auf 4×1)</td></tr>
+      <tr><td class="m">Integrator</td><td>Continuous</td><td class="m">IC: zeros(4,1) · Limit output: [0, w_max]</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Schritt 5.3 — Subsystem B: Kräfte &amp; Momente</h3>
+  <ol>
+    <li><code>Math Function</code> (square) auf w → ω².</li>
+    <li><code>Gain</code> mit Wert <code>MIX</code>, Multiplication auf <em>Matrix(K*u)</em> → Ausgang [T; τx; τy; τz].</li>
+    <li><code>Demux</code> in T (1) und τ (3).</li>
+    <li>Schubvektor bauen: <code>Mux</code> aus zwei <code>Constant(0)</code> und <code>−T</code> → F_thrust = [0; 0; −T].</li>
+    <li>Gravitation: <code>Constant [0;0;m*g]</code> → <code>MATLAB Function</code> oder Matrix-Multiplikation mit R<sup>T</sup> (R kommt als Eingang aus Subsystem D).</li>
+    <li>Drag: <code>Gain −Cd</code> (Matrix-Modus) auf v_b.</li>
+    <li><code>Sum</code> aller drei Kräfte → Outport „F_b“ (3×1); τ direkt → Outport „M_b“ (3×1).</li>
+  </ol>
+
+
+  <h3 id="s53detail">Schritt 5.3 im Detail: Verdrahtung Block für Block</h3>
+  <p>Das Subsystem hat <strong>drei Eingänge</strong> und <strong>zwei Ausgänge</strong>. Die Eingänge 2 und 3 sind Rückführungen aus den Subsystemen C/D — die Verdrahtung auf oberster Ebene ist also eine Schleife. Das ist kein Problem (siehe Box unten).</p>
+  <table>
+    <thead><tr><th>Port</th><th>Signal</th><th>Dimension</th><th>Kommt von / geht nach</th></tr></thead>
+    <tbody>
+      <tr><td class="m">In 1</td><td class="m">w</td><td class="m">4×1</td><td>Subsystem A (Aktuatorik)</td></tr>
+      <tr><td class="m">In 2</td><td class="m">v_b</td><td class="m">3×1</td><td>Rückführung aus Subsystem C (für Drag)</td></tr>
+      <tr><td class="m">In 3</td><td class="m">R</td><td class="m">3×3</td><td>Rückführung aus Subsystem D (für Gravitation)</td></tr>
+      <tr><td class="m">Out 1</td><td class="m">F_b</td><td class="m">3×1</td><td>Subsystem C (6-DoF)</td></tr>
+      <tr><td class="m">Out 2</td><td class="m">M_b</td><td class="m">3×1</td><td>Subsystem C (6-DoF)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="dia">
+    <svg viewBox="0 0 940 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interne Verdrahtung des Subsystems B: Kräfte und Momente">
+      <defs><marker id="arrB" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker></defs>
+      <style>
+        .sbx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .sbt{font:600 13px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .sbs{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .sln{stroke:#16212B;stroke-width:1.5;fill:none;marker-end:url(#arrB)}
+        .dim{font:600 10.5px 'IBM Plex Mono',monospace;fill:#1D5FBF;text-anchor:middle}
+        .prt{fill:#EAF1F9;stroke:#16212B;stroke-width:1.8;rx:10}
+        .prtt{font:600 11.5px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .pth{font:600 11px 'IBM Plex Mono',monospace;fill:#E8590C;text-anchor:middle}
+      </style>
+
+      <!-- ===== Pfad 1: w -> u^2 -> MIX -> Demux ===== -->
+      <rect class="prt" x="16" y="52" width="72" height="32" rx="10"/><text class="prtt" x="52" y="72">1: w</text>
+      <path class="sln" d="M88,68 L128,68"/><text class="dim" x="108" y="60">4×1</text>
+      <rect class="sbx" x="130" y="44" width="86" height="48"/><text class="sbt" x="173" y="65">u²</text><text class="sbs" x="173" y="82">Math Fn: square</text>
+      <path class="sln" d="M216,68 L256,68"/><text class="dim" x="236" y="60">4×1</text>
+      <rect class="sbx" x="258" y="44" width="104" height="48"/><text class="sbt" x="310" y="65">MIX</text><text class="sbs" x="310" y="82">Gain · Matrix(K*u)</text>
+      <path class="sln" d="M362,68 L418,68"/><text class="dim" x="390" y="60">4×1</text>
+      <rect x="420" y="36" width="13" height="86" fill="#16212B"/>
+      <text class="sbs" x="427" y="140">Demux [1 3]</text>
+      <!-- T oben raus -->
+      <path class="sln" d="M433,54 L486,54"/><text class="dim" x="458" y="46">T 1×1</text>
+      <rect class="sbx" x="488" y="34" width="68" height="40"/><text class="sbt" x="522" y="52">−1</text><text class="sbs" x="522" y="66">Gain</text>
+      <path class="sln" d="M556,54 L616,54"/>
+      <!-- zwei Konstanten fuer Mux -->
+      <rect class="sbx" x="510" y="96" width="46" height="28"/><text class="sbs" x="533" y="114">0</text>
+      <rect class="sbx" x="562" y="96" width="46" height="28"/><text class="sbs" x="585" y="114">0</text>
+      <path class="sln" d="M556,110 L600,110 L610,110 L616,74"/>
+      <path class="sln" d="M608,110 L618,96"/>
+      <rect x="618" y="40" width="13" height="76" fill="#16212B"/>
+      <text class="sbs" x="625" y="132">Mux (3 In)</text>
+      <path class="sln" d="M631,78 L718,78 L718,186"/><text class="dim" x="678" y="70">F_th=[0;0;−T]</text>
+      <!-- tau unten raus zu M_b -->
+      <path class="sln" d="M433,104 L836,104"/><text class="dim" x="640" y="97">τ=[τx;τy;τz] 3×1</text>
+      <rect class="prt" x="838" y="88" width="84" height="32" rx="10"/><text class="prtt" x="880" y="108">2: M_b</text>
+
+      <!-- ===== Pfad 2: Gravitation ===== -->
+      <rect class="prt" x="16" y="204" width="72" height="32" rx="10"/><text class="prtt" x="52" y="224">3: R</text>
+      <path class="sln" d="M88,220 L128,220"/><text class="dim" x="108" y="212">3×3</text>
+      <rect class="sbx" x="130" y="196" width="86" height="48"/><text class="sbt" x="173" y="217">uᵀ</text><text class="sbs" x="173" y="234">Math Fn: transpose</text>
+      <path class="sln" d="M216,220 L296,220"/><text class="dim" x="256" y="212">3×3</text>
+      <rect class="sbx" x="130" y="272" width="150" height="44"/><text class="sbt" x="205" y="291">g_ned</text><text class="sbs" x="205" y="307">Constant: [0; 0; m*g]</text>
+      <path class="sln" d="M280,294 L288,294 L288,232 L296,232"/><text class="dim" x="288" y="262" transform="rotate(0)">3×1</text>
+      <rect class="sbx" x="298" y="198" width="80" height="52"/><text class="sbt" x="338" y="221">×</text><text class="sbs" x="338" y="239">Product · Matrix(*)</text>
+      <path class="sln" d="M378,224 L672,224"/><text class="dim" x="520" y="216">F_grav = Rᵀ·g_ned  3×1</text>
+
+      <!-- ===== Pfad 3: Drag ===== -->
+      <rect class="prt" x="16" y="356" width="72" height="32" rx="10"/><text class="prtt" x="52" y="376">2: v_b</text>
+      <path class="sln" d="M88,372 L128,372"/><text class="dim" x="108" y="364">3×1</text>
+      <rect class="sbx" x="130" y="348" width="104" height="48"/><text class="sbt" x="182" y="369">−Cd</text><text class="sbs" x="182" y="386">Gain · Matrix(K*u)</text>
+      <path class="sln" d="M234,372 L718,372 L718,262"/><text class="dim" x="470" y="364">F_drag 3×1</text>
+
+      <!-- ===== Sum ===== -->
+      <circle cx="718" cy="224" r="30" fill="#fff" stroke="#16212B" stroke-width="2"/>
+      <text class="sbt" x="718" y="229" style="font-size:17px">Σ</text>
+      <text class="pth" x="700" y="196">+</text><text class="pth" x="686" y="230">+</text><text class="pth" x="700" y="258">+</text>
+      <path class="sln" d="M748,224 L836,224"/><text class="dim" x="792" y="216">F_b 3×1</text>
+      <rect class="prt" x="838" y="208" width="84" height="32" rx="10"/><text class="prtt" x="880" y="228">1: F_b</text>
+    </svg>
+    <div class="cap">ABB. 4 — INTERNE VERDRAHTUNG SUBSYSTEM B (VARIANTE A: GRAVITATION HIER GEDREHT). BLAUE BESCHRIFTUNG = SIGNALDIMENSION.</div>
+  </div>
+
+  <p><strong>Die drei parallelen Pfade, einzeln erklärt:</strong></p>
+  <ol>
+    <li><strong>Schub &amp; Momente (oben):</strong> <code>w</code> (4×1) wird elementweise quadriert — ein einziger <code>Math Function</code>-Block, Simulink wendet <em>square</em> auf jedes Element an. Dann durch den <code>Gain</code>-Block „MIX“: In dessen Dialog stellst du <em>Multiplication</em> von <em>Element-wise(K.*u)</em> auf <strong>Matrix(K*u)</strong> um — sonst versucht Simulink, eine 4×4-Matrix elementweise mit einem 4×1-Vektor zu multiplizieren und wirft einen Dimensionsfehler. Ausgang: [T; τx; τy; τz]. Der <code>Demux</code> trennt das: Im Dialog bei <em>Number of outputs</em> nicht <code>2</code> eintragen, sondern <strong><code>[1 3]</code></strong> — dann bekommst du oben den Skalar T und unten den fertigen 3×1-Momentenvektor, der direkt auf Outport <code>M_b</code> geht.</li>
+    <li><strong>Schubvektor bauen:</strong> T durch einen <code>Gain(−1)</code> (Schub wirkt in −z_b!), dann in einen <code>Mux</code> mit drei Eingängen: <code>Constant(0)</code>, <code>Constant(0)</code>, <code>−T</code>. Der Mux stapelt die drei Skalare zum Vektor [0; 0; −T]. Reihenfolge der Mux-Eingänge = Reihenfolge im Vektor, also unbedingt −T an den <em>dritten</em> Port.</li>
+    <li><strong>Gravitation (Mitte):</strong> Der Trick ist Gl. (4.1): Die Schwerkraft ist im NED konstant [0; 0; m·g], muss aber in den Body-Frame. Dafür braucht das Subsystem die Rotationsmatrix R als <em>Eingang</em> (3×3-Matrixsignal — Simulink kann das problemlos über eine Linie führen). Dann: <code>Math Function</code> mit <em>Function: transpose</em> → Rᵀ, und ein <code>Product</code>-Block, bei dem du <em>Multiplication</em> auf <strong>Matrix(*)</strong> stellst, mit Rᵀ am ersten und der Konstante <code>[0;0;m*g]</code> am zweiten Eingang. Ausgang: Gravitationskraft in Body-Koordinaten. Plausibilitätscheck: Bei R = Einheitsmatrix (Lage 0) kommt exakt [0; 0; m·g] heraus — Gewicht zeigt nach unten, +z_b. ✓</li>
+    <li><strong>Drag (unten):</strong> <code>v_b</code> durch einen <code>Gain</code> mit Wert <code>−Cd</code>, wieder Modus <strong>Matrix(K*u)</strong>. Fertig.</li>
+    <li><strong>Summe:</strong> <code>Sum</code>-Block, im Dialog <em>List of signs</em> = <code>+++</code>. Simulink addiert die drei 3×1-Vektoren elementweise → Outport <code>F_b</code>.</li>
+  </ol>
+
+  <table>
+    <thead><tr><th>Block</th><th>Bibliothek</th><th>Entscheidende Dialog-Einstellung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">Math Function „u²"</td><td>Math Operations</td><td class="m">Function: square</td></tr>
+      <tr><td class="m">Gain „MIX"</td><td>Math Operations</td><td class="m">Gain: MIX · Multiplication: Matrix(K*u)</td></tr>
+      <tr><td class="m">Demux</td><td>Signal Routing</td><td class="m">Number of outputs: [1 3]</td></tr>
+      <tr><td class="m">Gain „−1"</td><td>Math Operations</td><td class="m">Gain: -1</td></tr>
+      <tr><td class="m">Mux</td><td>Signal Routing</td><td class="m">Number of inputs: 3 (Reihenfolge = Vektorreihenfolge!)</td></tr>
+      <tr><td class="m">Math Function „uᵀ"</td><td>Math Operations</td><td class="m">Function: transpose</td></tr>
+      <tr><td class="m">Product „×"</td><td>Math Operations</td><td class="m">Number of inputs: 2 · Multiplication: Matrix(*)</td></tr>
+      <tr><td class="m">Constant „g_ned"</td><td>Sources</td><td class="m">Value: [0; 0; m*g]</td></tr>
+      <tr><td class="m">Gain „−Cd"</td><td>Math Operations</td><td class="m">Gain: -Cd · Multiplication: Matrix(K*u)</td></tr>
+      <tr><td class="m">Sum</td><td>Math Operations</td><td class="m">List of signs: +++</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box blue">
+    <span class="tag">Keine Angst vor der Rückführ-Schleife (kein algebraic loop)</span>
+    <p>v_b und R kommen aus Subsystemen, die F_b als Eingang haben — auf den ersten Blick eine zirkuläre Abhängigkeit. Sie ist aber harmlos: Zwischen F_b und v_b/R liegen <strong>Integratoren</strong>, und ein Integrator-Ausgang hängt nur vom <em>vergangenen</em> Eingang ab. Simulink löst das automatisch auf. Eine echte algebraische Schleife (Fehlermeldung!) entstünde nur, wenn ein Signal ohne Integrator/Delay auf sich selbst zurückwirkt.</p>
+  </div>
+  <div class="box">
+    <span class="tag">Zwei Praxis-Tipps, die Stunden sparen</span>
+    <p><strong>1. Signaldimensionen einblenden:</strong> <em>Debug → Information Overlays → Signal Dimensions</em> (bzw. Display-Menü je nach Release). Dann steht an jeder Linie 4×1, 3×3 usw. — Dimensionsfehler siehst du sofort statt erst beim Simulieren. <strong>2. Alternative Variante B:</strong> Wenn dir das Führen des 3×3-Matrixsignals R durchs Modell nicht gefällt, lass die Gravitation komplett aus Subsystem B weg und addiere <code>R'*[0;0;m*g]</code> stattdessen in der MATLAB Function <code>eom_rhs</code> (Subsystem C) zu <code>F_b/m</code> — R wird dort ohnehin berechnet. Dann braucht Subsystem B nur noch die Eingänge w und v_b. Beide Varianten sind korrekt; B ist die sauberere Architektur, A der bessere Lerneffekt für Matrixsignale in Simulink.</p>
+  </div>
+
+  <h3>Schritt 5.4 — Subsystem C: 6-DoF-Dynamik (Newton–Euler)</h3>
+  <p>Das Herzstück. Es löst die beiden vektoriellen DGLs (4.1) und (4.2) nach den Beschleunigungen auf und integriert sie zu den sechs Body-Zuständen. <strong>Reine Dynamik — keine Winkel, keine Position</strong> (das macht Subsystem D). Ports:</p>
+  <table>
+    <thead><tr><th>Port</th><th>Signal</th><th>Dim.</th><th>Kommt von / geht nach</th></tr></thead>
+    <tbody>
+      <tr><td class="m">In 1</td><td class="m">F_b</td><td class="m">3×1</td><td>Subsystem B (resultierende Kraft, Body)</td></tr>
+      <tr><td class="m">In 2</td><td class="m">M_b</td><td class="m">3×1</td><td>Subsystem B (resultierendes Moment, Body)</td></tr>
+      <tr><td class="m">Out 1</td><td class="m">v_b = [u;v;w]</td><td class="m">3×1</td><td>Subsystem D (Position) &amp; Subsystem B (Drag)</td></tr>
+      <tr><td class="m">Out 2</td><td class="m">om = [p;q;r]</td><td class="m">3×1</td><td>Subsystem D (Euler-Kinematik)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="dia">
+    <svg viewBox="0 0 940 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interne Verdrahtung Subsystem C: 6-DoF-Dynamik">
+      <defs><marker id="arrC" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker></defs>
+      <style>
+        .cbx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .cbt{font:600 13px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .cbs{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .cln{stroke:#16212B;stroke-width:1.5;fill:none;marker-end:url(#arrC)}
+        .cflb{stroke:#1D5FBF;stroke-width:1.4;fill:none;marker-end:url(#arrC);stroke-dasharray:5 4}
+        .cdim{font:600 10.5px 'IBM Plex Mono',monospace;fill:#1D5FBF;text-anchor:middle}
+        .cprt{fill:#EAF1F9;stroke:#16212B;stroke-width:1.8}
+        .cprtt{font:600 11px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .cxp{fill:#FDEBDD;stroke:#E8590C;stroke-width:2}
+        .csec{font:600 11px 'IBM Plex Mono',monospace;fill:#E8590C}
+      </style>
+      <text class="csec" x="16" y="30">TRANSLATION →  v̇_b = F_b/m − ω×v_b</text>
+      <rect class="cprt" x="16" y="52" width="70" height="30" rx="10"/><text class="cprtt" x="51" y="71">1: F_b</text>
+      <path class="cln" d="M86,67 L126,67"/><text class="cdim" x="106" y="59">3×1</text>
+      <rect class="cbx" x="128" y="45" width="66" height="44"/><text class="cbt" x="161" y="65">1/m</text><text class="cbs" x="161" y="81">Gain</text>
+      <path class="cln" d="M194,67 L232,67"/>
+      <circle cx="258" cy="67" r="22" fill="#fff" stroke="#16212B" stroke-width="2"/><text class="cbt" x="258" y="72">Σ</text>
+      <text class="csec" x="236" y="55">+</text><text class="csec" x="250" y="102">−</text>
+      <path class="cln" d="M280,67 L330,67"/><text class="cdim" x="305" y="59">v̇_b</text>
+      <rect class="cbx" x="332" y="43" width="118" height="48"/><text class="cbt" x="391" y="65">∫ 1/s</text><text class="cbs" x="391" y="82">Integrator · IC 0</text>
+      <path class="cln" d="M450,67 L560,67"/><text class="cdim" x="505" y="59">v_b 3×1</text>
+      <rect class="cprt" x="562" y="52" width="70" height="30" rx="10"/><text class="cprtt" x="597" y="71">1: v_b</text>
+      <!-- cross product 1 -->
+      <rect class="cxp" x="150" y="150" width="150" height="46"/><text class="cbt" x="225" y="170" fill="#16212B">ω × v_b</text><text class="cbs" x="225" y="186">Kreuzprod. (Abb. 6)</text>
+      <path class="cln" d="M225,150 L225,120 L232,90"/><text class="cdim" x="238" y="118">3×1</text>
+      <!-- feedback v_b to cross -->
+      <path class="cflb" d="M520,82 L520,214 L300,214 L280,190"/><text class="cdim" x="400" y="228" fill="#1D5FBF">v_b (Rückführung)</text>
+      <!-- om into cross1 -->
+      <path class="cflb" d="M150,173 L120,173 L120,300"/>
+
+      <text class="csec" x="16" y="270">ROTATION →  ω̇ = I⁻¹·(M_b − ω×(I·ω))</text>
+      <rect class="cprt" x="16" y="292" width="70" height="30" rx="10"/><text class="cprtt" x="51" y="311">2: M_b</text>
+      <path class="cln" d="M86,307 L214,307"/><text class="cdim" x="150" y="299">3×1</text>
+      <circle cx="240" cy="307" r="22" fill="#fff" stroke="#16212B" stroke-width="2"/><text class="cbt" x="240" y="312">Σ</text>
+      <text class="csec" x="218" y="295">+</text><text class="csec" x="232" y="342">−</text>
+      <path class="cln" d="M262,307 L300,307"/>
+      <rect class="cbx" x="302" y="285" width="86" height="44"/><text class="cbt" x="345" y="305">1./Ivec</text><text class="cbs" x="345" y="321">Gain (elementw.)</text>
+      <path class="cln" d="M388,307 L426,307"/><text class="cdim" x="407" y="299">ω̇</text>
+      <rect class="cbx" x="428" y="283" width="118" height="48"/><text class="cbt" x="487" y="305">∫ 1/s</text><text class="cbs" x="487" y="322">Integrator · IC 0</text>
+      <path class="cln" d="M546,307 L648,307"/><text class="cdim" x="597" y="299">om 3×1</text>
+      <rect class="cprt" x="650" y="292" width="70" height="30" rx="10"/><text class="cprtt" x="685" y="311">2: om</text>
+      <!-- I*om and cross2 -->
+      <rect class="cbx" x="470" y="360" width="80" height="40"/><text class="cbt" x="510" y="380">Ivec</text><text class="cbs" x="510" y="394">Gain → I·ω</text>
+      <rect class="cxp" x="300" y="360" width="150" height="40"/><text class="cbt" x="375" y="380" fill="#16212B">ω × (I·ω)</text><text class="cbs" x="375" y="394">Kreuzprod. (Abb. 6)</text>
+      <path class="cflb" d="M610,323 L610,380 L550,380"/><text class="cdim" x="600" y="352" fill="#1D5FBF">om</text>
+      <path class="cln" d="M470,380 L452,380"/>
+      <path class="cln" d="M300,380 L232,380 L232,329"/>
+      <path class="cflb" d="M340,360 L340,340 L322,329"/><text class="cdim" x="352" y="352" fill="#1D5FBF">om</text>
+    </svg>
+    <div class="cap">ABB. 5 — SUBSYSTEM C. DURCHGEZOGEN = VORWÄRTSPFAD, GESTRICHELT BLAU = ZUSTANDS-RÜCKFÜHRUNG AUS DEN INTEGRATOREN.</div>
+  </div>
+
+  <p><strong>Translation (obere Zeile), Block für Block:</strong></p>
+  <ol>
+    <li><code>F_b</code> → <code>Gain(1/m)</code> ergibt die spezifische Kraft F_b/m.</li>
+    <li>Parallel: <code>v_b</code> und <code>om</code> (beide aus den Integrator-Ausgängen zurückgeführt) gehen in das Kreuzprodukt-Subsystem <strong>ω×v_b</strong> (siehe Abb. 6 — einmal bauen, hier instanziieren).</li>
+    <li><code>Sum</code> mit <em>List of signs</em> <code>+-</code>: F_b/m minus ω×v_b = v̇_b.</li>
+    <li><code>Integrator</code> (3×1), <em>Initial condition</em> <code>[0;0;0]</code> → v_b. <strong>Kein</strong> Limit hier (Geschwindigkeit ist physikalisch unbegrenzt). Ausgang auf <code>Outport v_b</code> <em>und</em> zurück zum Kreuzprodukt.</li>
+  </ol>
+  <p><strong>Rotation (untere Zeile):</strong></p>
+  <ol start="5">
+    <li><code>om</code> → <code>Gain(Ivec)</code> (elementweise, weil I diagonal) → I·ω.</li>
+    <li>Kreuzprodukt-Subsystem <strong>ω×(I·ω)</strong>: erster Eingang <code>om</code>, zweiter Eingang <code>I·ω</code>. <em>Reihenfolge zählt</em> — es ist ω×(Iω), nicht (Iω)×ω, sonst kippt das Vorzeichen des Kreiselterms.</li>
+    <li><code>Sum</code> (<code>+-</code>): M_b minus ω×(I·ω).</li>
+    <li><code>Gain(1./Ivec)</code> (elementweise) = I⁻¹·(…) = ω̇.</li>
+    <li><code>Integrator</code> (3×1), IC <code>[0;0;0]</code> → om. Ausgang auf <code>Outport om</code> <em>und</em> zurück zu beiden Kreuzprodukten.</li>
+  </ol>
+
+  <h4 style="font-family:var(--disp);font-weight:600;font-size:16px;margin:24px 0 8px;color:var(--blue-deep)">Das Kreuzprodukt-Subsystem (Abb. 6) — einmal bauen, zweimal nutzen</h4>
+  <p>Basis-Simulink hat <em>keinen</em> Kreuzprodukt-Block (der steckt in der Aerospace Blockset). Du baust ihn aus der Komponentenformel selbst — der lehrreiche Weg:</p>
+  <div class="eq"><span class="lbl">(5.1)</span><b>a</b> × <b>b</b> = [ a₂b₃ − a₃b₂ ; &nbsp; a₃b₁ − a₁b₃ ; &nbsp; a₁b₂ − a₂b₁ ]</div>
+  <div class="dia">
+    <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kreuzprodukt aus elementaren Blöcken">
+      <defs><marker id="arrX" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 z" fill="#16212B"/></marker></defs>
+      <style>
+        .xbx{fill:#fff;stroke:#16212B;stroke-width:1.8}
+        .xbt{font:600 12px 'IBM Plex Mono',monospace;fill:#16212B;text-anchor:middle}
+        .xln{stroke:#16212B;stroke-width:1.3;fill:none;marker-end:url(#arrX)}
+        .xprt{fill:#EAF1F9;stroke:#16212B;stroke-width:1.8}
+        .xprtt{font:600 11px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .xlbl{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68}
+      </style>
+      <rect class="xprt" x="16" y="60" width="58" height="28" rx="10"/><text class="xprtt" x="45" y="79">1: a</text>
+      <rect class="xprt" x="16" y="200" width="58" height="28" rx="10"/><text class="xprtt" x="45" y="219">2: b</text>
+      <rect x="96" y="52" width="12" height="44" fill="#16212B"/><text class="xlbl" x="90" y="108">Demux a</text>
+      <rect x="96" y="192" width="12" height="44" fill="#16212B"/><text class="xlbl" x="90" y="248">Demux b</text>
+      <text class="xlbl" x="120" y="60">a₁</text><text class="xlbl" x="120" y="76">a₂</text><text class="xlbl" x="120" y="92">a₃</text>
+      <text class="xlbl" x="120" y="200">b₁</text><text class="xlbl" x="120" y="216">b₂</text><text class="xlbl" x="120" y="232">b₃</text>
+      <!-- products -->
+      <rect class="xbx" x="300" y="30" width="86" height="30"/><text class="xbt" x="343" y="50">a₂·b₃</text>
+      <rect class="xbx" x="300" y="66" width="86" height="30"/><text class="xbt" x="343" y="86">a₃·b₂</text>
+      <rect class="xbx" x="300" y="118" width="86" height="30"/><text class="xbt" x="343" y="138">a₃·b₁</text>
+      <rect class="xbx" x="300" y="154" width="86" height="30"/><text class="xbt" x="343" y="174">a₁·b₃</text>
+      <rect class="xbx" x="300" y="206" width="86" height="30"/><text class="xbt" x="343" y="226">a₁·b₂</text>
+      <rect class="xbx" x="300" y="242" width="86" height="30"/><text class="xbt" x="343" y="262">a₂·b₁</text>
+      <text class="xlbl" x="150" y="20">6× Product-Block</text>
+      <path class="xln" d="M135,58 L298,45"/><path class="xln" d="M135,90 L298,81"/>
+      <path class="xln" d="M135,90 L298,133"/><path class="xln" d="M135,58 L298,169"/>
+      <path class="xln" d="M135,58 L298,221"/><path class="xln" d="M135,74 L298,257"/>
+      <path class="xln" d="M135,230 L298,52" opacity="0.35"/>
+      <!-- sums -->
+      <circle cx="470" cy="45" r="18" fill="#fff" stroke="#16212B" stroke-width="1.8"/><text class="xbt" x="470" y="50">−</text>
+      <circle cx="470" cy="133" r="18" fill="#fff" stroke="#16212B" stroke-width="1.8"/><text class="xbt" x="470" y="138">−</text>
+      <circle cx="470" cy="221" r="18" fill="#fff" stroke="#16212B" stroke-width="1.8"/><text class="xbt" x="470" y="226">−</text>
+      <path class="xln" d="M386,45 L452,45"/><path class="xln" d="M386,81 L452,52"/>
+      <path class="xln" d="M386,133 L452,133"/><path class="xln" d="M386,169 L452,140"/>
+      <path class="xln" d="M386,221 L452,221"/><path class="xln" d="M386,257 L452,228"/>
+      <text class="xlbl" x="430" y="18">3× Sum (+-)</text>
+      <rect x="560" y="35" width="12" height="200" fill="#16212B"/><text class="xlbl" x="556" y="250">Mux</text>
+      <path class="xln" d="M488,45 L558,55"/><path class="xln" d="M488,133 L558,135"/><path class="xln" d="M488,221 L558,215"/>
+      <path class="xln" d="M572,135 L640,135"/>
+      <rect class="xprt" x="642" y="121" width="86" height="28" rx="10"/><text class="xprtt" x="685" y="140">1: a×b</text>
+    </svg>
+    <div class="cap">ABB. 6 — KREUZPRODUKT a×b AUS 2 DEMUX, 6 PRODUCT, 3 SUM, 1 MUX. ALS SUBSYSTEM MASKIEREN UND ZWEIMAL EINSETZEN.</div>
+  </div>
+  <div class="box blue">
+    <span class="tag">Pragmatische Alternative</span>
+    <p>Wer die 12 Blöcke nicht malen will: ein einziger <code>MATLAB Function</code>-Block mit <code>function c = xprod(a,b); c = cross(a,b); end</code> ist funktional identisch und C-Code-tauglich. Der elementare Aufbau in Abb. 6 lohnt sich einmal, damit du siehst, was <code>cross()</code> tatsächlich rechnet — danach darfst du die Funktion nehmen.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Block (Subsystem C)</th><th>Bibliothek</th><th>Entscheidende Einstellung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">Gain „1/m"</td><td>Math Operations</td><td class="m">Gain: 1/m</td></tr>
+      <tr><td class="m">Gain „Ivec" / „1./Ivec"</td><td>Math Operations</td><td class="m">Multiplication: Element-wise(K.*u)</td></tr>
+      <tr><td class="m">Sum (2×)</td><td>Math Operations</td><td class="m">List of signs: +-</td></tr>
+      <tr><td class="m">Integrator (2×)</td><td>Continuous</td><td class="m">IC: [0;0;0] · kein Limit</td></tr>
+      <tr><td class="m">Kreuzprod.-Subsystem (2×)</td><td>eigen (Abb. 6)</td><td class="m">Eingangsreihenfolge (a,b) beachten!</td></tr>
+    </tbody>
+  </table>
+
+  <h4 style="font-family:var(--disp);font-weight:600;font-size:16px;margin:28px 0 8px;color:var(--blue-deep)">Variante 2 im Detail — eine MATLAB Function statt Blockgrafik</h4>
+  <p>Diese Variante fasst <strong>Subsystem C und D in einem Block zusammen</strong>: die komplette rechte Seite aller 12 DGLs. Die vier Ableitungen integrierst du <em>außen</em> mit vier Integratoren und führst die Zustände zurück. Vorteile: kompakt, keine Kreuzprodukt-Bastelei, und der Code ist 1:1 C-tauglich (dein TC399-Pfad). Preis: du siehst weniger Blockmechanik. <strong>Wählst du diese Variante, entfällt Schritt 5.5 (Subsystem D) komplett</strong> — die Kinematik steckt in der Funktion.</p>
+
+  <div class="box blue">
+    <span class="tag">Konsequenz für Subsystem B</span>
+    <p>Ich lege die Gravitation hier <em>in die Funktion</em> (R liegt dort ohnehin vor). Damit liefert Subsystem B nur noch <strong>Schub + Drag</strong> und braucht seinen R-Eingang nicht mehr — der Gravitationszweig und der R-Eingang aus Abb. 4 fallen weg. Das Eingangssignal heißt unten deshalb <code>F_ext</code> (externe Kraft ohne Gravitation), nicht F_b.</p>
+  </div>
+
+<pre><span class="fn">MATLAB Function „eom_rhs" — vollständig, mit Gravitation innen</span><span class="kw">function</span> [v_dot, om_dot, Phi_dot, p_ned_dot, R] = eom_rhs(F_ext, M_b, v_b, om, Phi, m, g, Ivec)
+<span class="cm">% Rechte Seite aller 12 DGL. F_ext = Schub + Drag (Body), OHNE Gravitation.</span>
+phi = Phi(1); the = Phi(2); psi = Phi(3);
+cph=cos(phi); sph=sin(phi); cth=cos(the); sth=sin(the); cps=cos(psi); sps=sin(psi);
+
+<span class="cm">% Rotationsmatrix Body-&gt;NED (ZYX), Gl. (4.5)</span>
+R = [cth*cps, sph*sth*cps-cph*sps, cph*sth*cps+sph*sps;
+     cth*sps, sph*sth*sps+cph*cps, cph*sth*sps-sph*cps;
+    -sth,     sph*cth,             cph*cth];
+
+<span class="cm">% Gravitation in den Body-Frame drehen (R' = NED-&gt;Body)</span>
+F_grav_b = R.' * [0; 0; m*g];
+
+v_dot     = (F_ext + F_grav_b)/m - cross(om, v_b);   <span class="cm">% (4.1)</span>
+om_dot    = (M_b - cross(om, Ivec.*om)) ./ Ivec;     <span class="cm">% (4.2)</span>
+W = [1, sph*tan(the), cph*tan(the);                  <span class="cm">% (4.3) Sing. bei the=±pi/2</span>
+     0, cph,         -sph;
+     0, sph/cth,      cph/cth];
+Phi_dot   = W * om;
+p_ned_dot = R * v_b;                                 <span class="cm">% (4.4)</span>
+<span class="kw">end</span></pre>
+
+  <div class="dia">
+    <svg viewBox="0 0 940 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Subsystem C als MATLAB Function mit externen Integratoren und Zustandsrückführung">
+      <defs><marker id="arrM" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker>
+      <marker id="arrMb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#1D5FBF"/></marker></defs>
+      <style>
+        .mbx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .mfn{fill:#EAF1F9;stroke:#1D5FBF;stroke-width:2.5}
+        .mbt{font:600 12px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .mfnt{font:700 15px 'Space Grotesk',sans-serif;fill:#123E7C;text-anchor:middle}
+        .mbs{font:9.5px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .mport{font:10px 'IBM Plex Mono',monospace;fill:#123E7C}
+        .mln{stroke:#16212B;stroke-width:1.5;fill:none;marker-end:url(#arrM)}
+        .mfl{stroke:#1D5FBF;stroke-width:1.4;fill:none;marker-end:url(#arrMb);stroke-dasharray:5 4}
+        .mdim{font:600 10px 'IBM Plex Mono',monospace;fill:#1D5FBF;text-anchor:middle}
+        .mprt{fill:#FDEBDD;stroke:#E8590C;stroke-width:1.6}
+        .mprtt{font:600 10.5px 'IBM Plex Mono',monospace;fill:#8a3a0c;text-anchor:middle}
+      </style>
+      <!-- external inputs from B -->
+      <rect class="mprt" x="12" y="120" width="74" height="26" rx="10"/><text class="mprtt" x="49" y="137">F_ext</text>
+      <rect class="mprt" x="12" y="156" width="74" height="26" rx="10"/><text class="mprtt" x="49" y="173">M_b</text>
+      <path class="mln" d="M86,133 L206,133"/>
+      <path class="mln" d="M86,169 L206,177"/>
+      <!-- function block -->
+      <rect class="mfn" x="208" y="66" width="200" height="290"/>
+      <text class="mfnt" x="308" y="52">eom_rhs</text>
+      <text class="mbs" x="308" y="352" style="font-size:10px">MATLAB Function</text>
+      <!-- input port labels (left, inside) -->
+      <text class="mport" x="216" y="136">F_ext</text>
+      <text class="mport" x="216" y="180">M_b</text>
+      <text class="mport" x="216" y="224">v_b</text>
+      <text class="mport" x="216" y="268">om</text>
+      <text class="mport" x="216" y="312">Phi</text>
+      <!-- output port labels (right, inside) -->
+      <text class="mport" x="400" y="112" text-anchor="end">v_dot</text>
+      <text class="mport" x="400" y="158" text-anchor="end">om_dot</text>
+      <text class="mport" x="400" y="204" text-anchor="end">Phi_dot</text>
+      <text class="mport" x="400" y="250" text-anchor="end">p_ned_dot</text>
+      <text class="mport" x="400" y="330" text-anchor="end">R</text>
+      <!-- integrators -->
+      <rect class="mbx" x="500" y="86" width="104" height="40"/><text class="mbt" x="552" y="104">∫ 1/s</text><text class="mbs" x="552" y="118">IC v0</text>
+      <rect class="mbx" x="500" y="132" width="104" height="40"/><text class="mbt" x="552" y="150">∫ 1/s</text><text class="mbs" x="552" y="164">IC om0</text>
+      <rect class="mbx" x="500" y="178" width="104" height="40"/><text class="mbt" x="552" y="196">∫ 1/s</text><text class="mbs" x="552" y="210">IC Phi0</text>
+      <rect class="mbx" x="500" y="224" width="104" height="40"/><text class="mbt" x="552" y="242">∫ 1/s</text><text class="mbs" x="552" y="256">IC [0;0;-h0]</text>
+      <path class="mln" d="M408,104 L498,106"/>
+      <path class="mln" d="M408,150 L498,152"/>
+      <path class="mln" d="M408,196 L498,198"/>
+      <path class="mln" d="M408,242 L498,244"/>
+      <path class="mln" d="M408,322 L720,322"/><text class="mdim" x="640" y="314">R 3×3 → Logging</text>
+      <!-- integrator outputs to the right -->
+      <path class="mln" d="M604,106 L720,106"/><text class="mprtt" x="700" y="98" fill="#123E7C" style="fill:#123E7C">v_b</text>
+      <path class="mln" d="M604,152 L720,152"/><text class="mport" x="700" y="144">om</text>
+      <path class="mln" d="M604,198 L720,198"/><text class="mport" x="700" y="190">Phi</text>
+      <path class="mln" d="M604,244 L720,244"/><text class="mport" x="700" y="236">p_ned</text>
+      <rect class="mbx" x="722" y="92" width="150" height="170" fill="#F6F9FC"/>
+      <text class="mbs" x="797" y="150" style="font-size:11px">Regler (Abschn. 08)</text>
+      <text class="mbs" x="797" y="170" style="font-size:11px">Logging (5.7)</text>
+      <text class="mbs" x="797" y="190" style="font-size:11px">v_b → Subsystem B</text>
+      <!-- feedback dashed: v_b, om, Phi back into function inputs -->
+      <path class="mfl" d="M650,126 L650,400 L180,400 L180,220 L206,220"/>
+      <path class="mfl" d="M672,172 L672,388 L166,388 L166,264 L206,264"/>
+      <path class="mfl" d="M694,218 L694,376 L152,376 L152,308 L206,308"/>
+      <text class="mdim" x="410" y="416" fill="#1D5FBF">Zustandsrückführung v_b, om, Phi (dashed) — läuft über die Integratoren, daher KEIN algebraic loop</text>
+      <!-- parameters -->
+      <rect x="230" y="366" width="156" height="30" fill="#fff" stroke="#4A5A68" stroke-width="1" stroke-dasharray="4 3"/>
+      <text class="mbs" x="308" y="385" style="font-size:10px">m, g, Ivec — Parameter-Scope</text>
+    </svg>
+    <div class="cap">ABB. 8 — SUBSYSTEM C ALS MATLAB FUNCTION. 5 EINGÄNGE, 5 AUSGÄNGE, 4 EXTERNE INTEGRATOREN. v_b/om/Phi WERDEN ZURÜCKGEFÜHRT.</div>
+  </div>
+
+  <p><strong>Aufbau Schritt für Schritt:</strong></p>
+  <ol>
+    <li><code>MATLAB Function</code>-Block aus <em>User-Defined Functions</em> ziehen, Code oben einfügen. Die Signatur bestimmt automatisch die Ports: 5 Eingänge links, 5 Ausgänge rechts — <em>noch</em> mit Parametern als Eingang.</li>
+    <li><strong>Ports and Data Manager</strong> öffnen (im Function-Editor: <em>Edit Data</em> / Symbols-Pane). Für <code>m</code>, <code>g</code>, <code>Ivec</code> den <em>Scope</em> von <strong>Input</strong> auf <strong>Parameter</strong> stellen. Damit verschwinden sie als Eingangs-Ports und werden zur Simulationszeit aus dem Base Workspace aufgelöst. Übrig bleiben 5 echte Eingänge (F_ext, M_b, v_b, om, Phi).</li>
+    <li>Vier <code>Integrator</code>-Blöcke platzieren. Jeden Ableitungsausgang auf seinen Integrator verdrahten, Anfangswerte setzen (Tabelle unten). <code>p_ned</code>-Integrator: IC <code>[0;0;-h0]</code>, weil z = −Höhe.</li>
+    <li><strong>Rückführung:</strong> Integrator-Ausgänge <code>v_b</code>, <code>om</code>, <code>Phi</code> zurück auf die gleichnamigen Funktions-Eingänge. <code>p_ned</code> und <code>R</code> gehen nur nach außen (keine Rückführung).</li>
+    <li><code>F_ext</code>, <code>M_b</code> von Subsystem B anschließen. Zustände nach außen zu Logging/Regler; <code>v_b</code> zusätzlich zurück an Subsystem B (Drag). <code>R</code> nur noch fürs Logging/Visualisierung nötig.</li>
+  </ol>
+
+  <table>
+    <thead><tr><th>Symbol im Data Manager</th><th>Scope</th><th>Size</th></tr></thead>
+    <tbody>
+      <tr><td class="m">F_ext, M_b, v_b, om, Phi</td><td class="m">Input</td><td class="m">3</td></tr>
+      <tr><td class="m">m, g</td><td class="m">Parameter</td><td class="m">1 (Skalar)</td></tr>
+      <tr><td class="m">Ivec</td><td class="m">Parameter</td><td class="m">3</td></tr>
+      <tr><td class="m">v_dot, om_dot, Phi_dot, p_ned_dot</td><td class="m">Output</td><td class="m">3</td></tr>
+      <tr><td class="m">R</td><td class="m">Output</td><td class="m">[3 3]</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>Integrator</th><th>Initial condition</th><th>Bemerkung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">∫ → v_b</td><td class="m">[0;0;0]</td><td>Ruhe; kein Limit</td></tr>
+      <tr><td class="m">∫ → om</td><td class="m">[0;0;0]</td><td>keine Anfangsdrehrate</td></tr>
+      <tr><td class="m">∫ → Phi</td><td class="m">[0;0;0]</td><td>Lage waagerecht</td></tr>
+      <tr><td class="m">∫ → p_ned</td><td class="m">[0;0;-h0]</td><td>h0 = Starthöhe → z negativ!</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box">
+    <span class="tag">Zwei Fallstricke</span>
+    <p><strong>1. Algebraic loop:</strong> Solange jede Rückführung über einen Integrator läuft, ist alles gut. Führst du versehentlich einen Funktionsausgang <em>direkt</em> (ohne Integrator) auf einen Eingang, wirft Simulink „Algebraic loop“. Der Integrator ist die Verzögerung, die die Schleife auflöst. <strong>2. Parameter statt Constant-Blöcke:</strong> <code>m, g, Ivec</code> als Parameter-Scope zu deklarieren ist numerisch identisch zum Verdrahten von <code>Constant</code>-Blöcken, aber ohne Kabelsalat — und der Codegenerator behandelt sie als abstimmbare Parameter. Genau das willst du für den TC399-Export.</p>
+  </div>
+  <div class="box blue">
+    <span class="tag">Warum das für deinen TC399-Pfad die interessantere Variante ist</span>
+    <p>Der Inhalt von <code>eom_rhs</code> ist reines C99-nahes MATLAB — dieselbe Mathematik, die du später auf dem TriCore rechnest. Du kannst die Funktion mit Embedded Coder automatisch nach C übersetzen oder von Hand portieren, und dein MiL-Modell aus Abschnitt 06 wird ohne Umbau zum Referenzorakel für den SiL/PiL-Vergleich. Die Blockgrafik-Variante (Abb. 5) müsstest du dafür erst wieder in Code gießen.</p>
+  </div>
+
+  <h3>Schritt 5.5 — Subsystem D: Kinematik</h3>
+  <p class="note" style="border-left:4px solid var(--orange);padding-left:12px">Nur nötig, wenn du für Subsystem C die <strong>Blockgrafik-Variante</strong> (Abb. 5) gewählt hast. Bei der MATLAB-Function-Variante (Abb. 8) steckt die Kinematik bereits in <code>eom_rhs</code> — dann überspringst du diesen Schritt.</p>
+  <p>Der Übersetzer zwischen Body- und Inertialsystem. Zwei unabhängige Ketten plus ein Nebenausgang R (für die Gravitation in Subsystem B). Ports:</p>
+  <table>
+    <thead><tr><th>Port</th><th>Signal</th><th>Dim.</th><th>Kommt von / geht nach</th></tr></thead>
+    <tbody>
+      <tr><td class="m">In 1</td><td class="m">v_b</td><td class="m">3×1</td><td>Subsystem C</td></tr>
+      <tr><td class="m">In 2</td><td class="m">om</td><td class="m">3×1</td><td>Subsystem C</td></tr>
+      <tr><td class="m">Out 1</td><td class="m">Phi = [φ;θ;ψ]</td><td class="m">3×1</td><td>Regler / Logging</td></tr>
+      <tr><td class="m">Out 2</td><td class="m">p_ned = [x;y;z]</td><td class="m">3×1</td><td>Regler / Logging</td></tr>
+      <tr><td class="m">Out 3</td><td class="m">R</td><td class="m">3×3</td><td>Subsystem B (Gravitationsdrehung)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="dia">
+    <svg viewBox="0 0 920 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interne Verdrahtung Subsystem D: Kinematik">
+      <defs><marker id="arrD" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker></defs>
+      <style>
+        .dbx{fill:#fff;stroke:#16212B;stroke-width:2}
+        .dfn{fill:#EAF1F9;stroke:#1D5FBF;stroke-width:2}
+        .dbt{font:600 12.5px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .dbs{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .dln{stroke:#16212B;stroke-width:1.5;fill:none;marker-end:url(#arrD)}
+        .dflb{stroke:#1D5FBF;stroke-width:1.4;fill:none;marker-end:url(#arrD);stroke-dasharray:5 4}
+        .ddim{font:600 10.5px 'IBM Plex Mono',monospace;fill:#1D5FBF;text-anchor:middle}
+        .dprt{fill:#EAF1F9;stroke:#16212B;stroke-width:1.8}
+        .dprtt{font:600 11px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .dsec{font:600 11px 'IBM Plex Mono',monospace;fill:#E8590C}
+      </style>
+      <text class="dsec" x="16" y="28">EULER-KINEMATIK →  Φ̇ = W(Φ)·ω</text>
+      <rect class="dprt" x="16" y="50" width="62" height="30" rx="10"/><text class="dprtt" x="47" y="69">2: om</text>
+      <path class="dln" d="M78,65 L150,65"/><text class="ddim" x="114" y="57">3×1</text>
+      <rect class="dfn" x="152" y="40" width="150" height="50"/><text class="dbt" x="227" y="61">eulerRates</text><text class="dbs" x="227" y="78">MATLAB Fn: W(Φ)·om</text>
+      <path class="dln" d="M302,65 L346,65"/><text class="ddim" x="324" y="57">Φ̇</text>
+      <rect class="dbx" x="348" y="41" width="118" height="48"/><text class="dbt" x="407" y="63">∫ 1/s</text><text class="dbs" x="407" y="80">Integrator · IC 0</text>
+      <path class="dln" d="M466,65 L560,65"/><text class="ddim" x="513" y="57">Φ 3×1</text>
+      <rect class="dprt" x="562" y="50" width="62" height="30" rx="10"/><text class="dprtt" x="593" y="69">1: Phi</text>
+      <!-- Phi feedback into eulerRates and into buildR -->
+      <path class="dflb" d="M520,80 L520,120 L227,120 L227,90"/><text class="ddim" x="360" y="134" fill="#1D5FBF">Φ (Rückführung → W)</text>
+      <path class="dflb" d="M520,120 L700,120 L700,180"/><text class="ddim" x="712" y="150" fill="#1D5FBF">Φ</text>
+
+      <text class="dsec" x="16" y="212">POSITIONS-KINEMATIK →  ṗ_NED = R(Φ)·v_b</text>
+      <rect class="dfn" x="640" y="184" width="150" height="50"/><text class="dbt" x="715" y="205">buildR</text><text class="dbs" x="715" y="222">MATLAB Fn: R(Φ)</text>
+      <path class="dln" d="M715,234 L715,262 L470,262"/><text class="ddim" x="600" y="254">R 3×3</text>
+      <path class="dln" d="M790,209 L860,209"/>
+      <rect class="dprt" x="815" y="150" width="62" height="30" rx="10" transform="translate(0,44)"/><text class="dprtt" x="846" y="213">3: R</text>
+      <rect class="dprt" x="16" y="278" width="62" height="30" rx="10"/><text class="dprtt" x="47" y="297">1: v_b</text>
+      <path class="dln" d="M78,293 L370,293"/><text class="ddim" x="220" y="285">3×1</text>
+      <rect class="dbx" x="372" y="270" width="96" height="46"/><text class="dbt" x="420" y="290">R·v_b</text><text class="dbs" x="420" y="307">Product · Matrix(*)</text>
+      <path class="dln" d="M468,293 L512,293"/><text class="ddim" x="490" y="285">ṗ</text>
+      <rect class="dbx" x="514" y="269" width="118" height="48"/><text class="dbt" x="573" y="291">∫ 1/s</text><text class="dbs" x="573" y="308">Integrator · IC 0</text>
+      <path class="dln" d="M632,293 L720,293"/><text class="ddim" x="676" y="285">p_ned</text>
+      <rect class="dprt" x="722" y="278" width="76" height="30" rx="10"/><text class="dprtt" x="760" y="297">2: p_ned</text>
+    </svg>
+    <div class="cap">ABB. 7 — SUBSYSTEM D. ZWEI TRIG-LASTIGE TEILE (W, R) ALS MATLAB FUNCTION, DER REST ELEMENTAR. R WIRD ALS OUT 3 EXPORTIERT.</div>
+  </div>
+
+  <p><strong>Warum hier MATLAB Functions und keine reinen Blöcke?</strong> W(Φ) und R(Φ) sind trigonometrisch (sin, cos, tan, 1/cos). Aus <code>Trigonometric Function</code>-Blöcken zusammengesetzt bräuchtest du je ~20 Blöcke und verlierst die Übersicht komplett. Zwei kleine Functions sind hier die ehrlich bessere Wahl — den elementaren Aufbau hast du beim Kreuzprodukt schon einmal geübt.</p>
+<pre><span class="fn">Block: MATLAB Function „eulerRates"</span><span class="kw">function</span> Phi_dot = eulerRates(om, Phi)
+phi = Phi(1); the = Phi(2);
+sph=sin(phi); cph=cos(phi); cth=cos(the); tth=tan(the);
+W = [1, sph*tth, cph*tth;
+     0, cph,    -sph;
+     0, sph/cth, cph/cth];   <span class="cm">% Singularität bei the = ±pi/2</span>
+Phi_dot = W * om;
+<span class="kw">end</span></pre>
+<pre><span class="fn">Block: MATLAB Function „buildR"</span><span class="kw">function</span> R = buildR(Phi)
+phi=Phi(1); the=Phi(2); psi=Phi(3);
+cph=cos(phi); sph=sin(phi); cth=cos(the); sth=sin(the); cps=cos(psi); sps=sin(psi);
+R = [cth*cps, sph*sth*cps-cph*sps, cph*sth*cps+sph*sps;
+     cth*sps, sph*sth*sps+cph*cps, cph*sth*sps-sph*cps;
+    -sth,     sph*cth,             cph*cth];
+<span class="kw">end</span></pre>
+  <p><strong>Positions-Kette, Block für Block:</strong></p>
+  <ol>
+    <li><code>Phi</code> (aus dem Euler-Integrator) → <code>buildR</code> → R (3×3). R geht auf <code>Outport R</code> (Out 3) <em>und</em> in den Product-Block.</li>
+    <li><code>Product</code>-Block, <em>Multiplication</em> auf <strong>Matrix(*)</strong>, erster Eingang R, zweiter Eingang <code>v_b</code> → R·v_b = ṗ_NED.</li>
+    <li><code>Integrator</code> (3×1), IC = Startposition (z. B. <code>[0;0;-2]</code> für 2 m Starthöhe, denn z = −Höhe!) → p_ned.</li>
+  </ol>
+  <table>
+    <thead><tr><th>Block (Subsystem D)</th><th>Bibliothek</th><th>Entscheidende Einstellung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">eulerRates</td><td>User-Defined Fn</td><td class="m">MATLAB Function (Code oben)</td></tr>
+      <tr><td class="m">buildR</td><td>User-Defined Fn</td><td class="m">MATLAB Function (Code oben)</td></tr>
+      <tr><td class="m">Product „R·v_b"</td><td>Math Operations</td><td class="m">Multiplication: Matrix(*)</td></tr>
+      <tr><td class="m">Integrator „Phi"</td><td>Continuous</td><td class="m">IC: [0;0;0]</td></tr>
+      <tr><td class="m">Integrator „p_ned"</td><td>Continuous</td><td class="m">IC: [0;0;-h0]  (Höhe h0 → z negativ!)</td></tr>
+    </tbody>
+  </table>
+  <div class="box">
+    <span class="tag">Gimbal-Lock ist ein Feature dieser Sichtbarkeit</span>
+    <p>Weil W(Φ) hier als eigener Block sichtbar ist, kannst du später für Loopings <em>nur</em> <code>eulerRates</code> gegen eine Quaternionen-Version tauschen (Zustand dann 4×1 statt 3×1, plus Normierung) — Subsystem C, B und A bleiben unangetastet. Genau dafür die saubere Trennung.</p>
+  </div>
+
+  <h3>Schritt 5.6 — Top-Level: die vier Subsysteme verschalten</h3>
+  <p>Jetzt schließt sich der Kreis — im Wortsinn. Auf der obersten Modellebene liegen die vier Subsysteme in Serie, plus zwei Rückführungen: <code>v_b</code> zurück an B (für den Drag) und <code>R</code> zurück an B (für die Gravitationsdrehung). Genau diese Schleife ist die Kausalkette aus Abb. 1, jetzt mit echten Signalen.</p>
+
+  <div class="dia">
+    <svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top-Level-Verschaltung der vier Subsysteme">
+      <defs>
+        <marker id="arrT" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker>
+        <marker id="arrTb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#1D5FBF"/></marker>
+      </defs>
+      <style>
+        .tsub{fill:#fff;stroke:#16212B;stroke-width:2.5}
+        .tsubt{font:700 14px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .tsubs{font:10px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .tln{stroke:#16212B;stroke-width:1.6;fill:none;marker-end:url(#arrT)}
+        .tfl{stroke:#1D5FBF;stroke-width:1.5;fill:none;marker-end:url(#arrTb);stroke-dasharray:6 4}
+        .tsig{font:600 11px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+        .tsrc{fill:#FDEBDD;stroke:#E8590C;stroke-width:2}
+        .tsrct{font:600 11px 'IBM Plex Mono',monospace;fill:#8a3a0c;text-anchor:middle}
+      </style>
+      <!-- source -->
+      <rect class="tsrc" x="14" y="86" width="96" height="52" rx="8"/><text class="tsrct" x="62" y="108">w_cmd</text><text class="tsrct" x="62" y="124" style="font-size:9.5px">Regler / Test</text>
+      <path class="tln" d="M110,112 L150,112"/><text class="tsig" x="130" y="104">4×1</text>
+      <!-- A -->
+      <rect class="tsub" x="152" y="82" width="118" height="60"/><text class="tsubt" x="211" y="106">A</text><text class="tsubs" x="211" y="124">Aktuatorik</text>
+      <path class="tln" d="M270,112 L318,112"/><text class="tsig" x="294" y="104">w 4×1</text>
+      <!-- B -->
+      <rect class="tsub" x="320" y="82" width="130" height="60"/><text class="tsubt" x="385" y="106">B</text><text class="tsubs" x="385" y="124">Kräfte &amp; Momente</text>
+      <path class="tln" d="M450,102 L520,102"/><text class="tsig" x="486" y="94">F_b 3×1</text>
+      <path class="tln" d="M450,124 L520,124"/><text class="tsig" x="486" y="140">M_b 3×1</text>
+      <!-- C -->
+      <rect class="tsub" x="522" y="82" width="118" height="60"/><text class="tsubt" x="581" y="106">C</text><text class="tsubs" x="581" y="124">6-DoF-Dynamik</text>
+      <path class="tln" d="M640,102 L706,102"/><text class="tsig" x="674" y="94">v_b</text>
+      <path class="tln" d="M640,124 L706,124"/><text class="tsig" x="674" y="140">om</text>
+      <!-- D -->
+      <rect class="tsub" x="708" y="82" width="118" height="60"/><text class="tsubt" x="767" y="106">D</text><text class="tsubs" x="767" y="124">Kinematik</text>
+      <path class="tln" d="M826,96 L900,96"/><text class="tsig" x="866" y="88">Phi</text>
+      <path class="tln" d="M826,118 L900,118"/><text class="tsig" x="866" y="134">p_ned</text>
+      <!-- outputs sink -->
+      <rect x="902" y="70" width="52" height="90" fill="#F6F9FC" stroke="#16212B" stroke-width="1.5"/>
+      <text class="tsubs" x="928" y="112" transform="rotate(90 928 112)">Logging / Regler</text>
+
+      <!-- feedback v_b -> B (drag) -->
+      <path class="tfl" d="M672,142 L672,250 L360,250 L360,142"/>
+      <text class="tsig" x="510" y="266" fill="#1D5FBF">v_b → B (Drag)</text>
+      <!-- feedback R from D -> B (gravity) -->
+      <path class="tfl" d="M800,142 L800,320 L340,320 L340,142"/>
+      <text class="tsig" x="560" y="336" fill="#1D5FBF">R → B (Gravitation, nur Blockgrafik-Variante)</text>
+      <!-- states to controller (closed loop) -->
+      <path class="tfl" d="M928,160 L928,360 L211,360 L211,142"/>
+      <text class="tsig" x="560" y="376" fill="#1D5FBF">Zustände → Regler (Closed Loop, Abschnitt 08)</text>
+    </svg>
+    <div class="cap">ABB. 9 — TOP-LEVEL. SCHWARZ = VORWÄRTSPFAD, BLAU GESTRICHELT = RÜCKFÜHRUNGEN. IM OPEN-LOOP-TEST (06) ERSETZT EIN STIMULUS-BLOCK DEN REGLER.</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Signal</th><th>Von → Nach</th><th>Dim.</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td class="m">w_cmd</td><td class="m">Regler/Test → A</td><td class="m">4×1</td><td>Solldrehzahlen der vier Motoren</td></tr>
+      <tr><td class="m">w</td><td class="m">A → B</td><td class="m">4×1</td><td>Ist-Drehzahlen (nach PT1 + Sättigung)</td></tr>
+      <tr><td class="m">F_b / F_ext</td><td class="m">B → C</td><td class="m">3×1</td><td>resultierende Kraft im Body-Frame</td></tr>
+      <tr><td class="m">M_b</td><td class="m">B → C</td><td class="m">3×1</td><td>resultierendes Moment im Body-Frame</td></tr>
+      <tr><td class="m">v_b</td><td class="m">C → D <em>und</em> C → B</td><td class="m">3×1</td><td>Body-Geschwindigkeit; Rückführung für Drag</td></tr>
+      <tr><td class="m">om</td><td class="m">C → D</td><td class="m">3×1</td><td>Drehrate [p;q;r]</td></tr>
+      <tr><td class="m">Phi</td><td class="m">D → out/Regler</td><td class="m">3×1</td><td>Lagewinkel [φ;θ;ψ]</td></tr>
+      <tr><td class="m">p_ned</td><td class="m">D → out/Regler</td><td class="m">3×1</td><td>Position [x;y;z], z = −Höhe</td></tr>
+      <tr><td class="m">R</td><td class="m">D → B</td><td class="m">3×3</td><td>Rotationsmatrix; Rückführung für Gravitation <em>(nur Blockgrafik-Variante)</em></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Verdrahtung, Schritt für Schritt:</strong></p>
+  <ol>
+    <li>Die vier Subsysteme als <code>Subsystem</code>-Blöcke platzieren (A→B→C→D von links nach rechts) und die Vorwärtspfade verbinden. Signalnamen vergeben (Rechtsklick auf Linie → <em>Properties → Signal name</em>): <code>w_cmd, w, F_b, M_b, v_b, om, Phi, p_ned, R</code>. Die Namen sind die Grundlage fürs Logging in 5.8.</li>
+    <li><strong>Drag-Rückführung:</strong> <code>v_b</code>-Ausgang von C zusätzlich auf den v_b-Eingang von B. Kein Delay nötig — die Schleife läuft über die Integratoren in C.</li>
+    <li><strong>Gravitations-Rückführung</strong> (nur Blockgrafik-Variante): <code>R</code>-Ausgang von D auf den R-Eingang von B. In der M-Function-Variante entfällt das (Gravitation liegt in <code>eom_rhs</code>).</li>
+    <li>Für den Open-Loop-Test (Abschnitt 06) einen <code>Constant</code>-/<code>Step</code>-Block als w_cmd-Quelle; für Closed Loop (08) den Reglerblock, gespeist aus den zurückgeführten Zuständen.</li>
+  </ol>
+
+  <div class="box blue">
+    <span class="tag">Top-Level in der M-Function-Variante</span>
+    <p>Wählst du für C die MATLAB-Function-Variante (Abb. 8), vereinfacht sich die oberste Ebene: <strong>B</strong> hat nur noch die Eingänge <code>w</code> und <code>v_b</code> (kein R) und liefert <code>F_ext, M_b</code>. <strong>C</strong> ist der kombinierte Block (eom_rhs + 4 Integratoren) und liefert direkt <code>v_b, om, Phi, p_ned, R</code>. <strong>Ein separates D gibt es nicht.</strong> Rückgeführt wird nur <code>v_b</code> an B. Aus vier Subsystemen werden also drei — die saubere Wahl für den Codegen-Pfad.</p>
+  </div>
+
+  <div class="box">
+    <span class="tag">Troubleshooting: „Unable to solve algebraic loop" bei Model-Referenzen</span>
+    <p>Bindest du die Subsysteme als <strong>referenzierte Modelle</strong> (Model-Blöcke) ein, meldet Simulink oft einen algebraischen Loop über <code>Model1/Model2/Model3</code>, obwohl deine Integratoren die Schleife physikalisch brechen. Grund: Ein referenziertes Modell gilt per Default als voller Durchgriff (jeder Ausgang hängt von jedem Eingang ab). Das ist ein <em>künstlicher</em> Loop. Fix: in jedem referenzierten Modell <em>Configuration Parameters → Model Referencing →</em> <strong>„Minimize algebraic loop occurrences"</strong> aktivieren (im Skript: <code>set_param(refModell,'ModelReferenceMinAlgLoopOccurrences','on')</code> für jedes Modell aus <code>find_mdlrefs</code>). <code>AlgebraicLoopMsg='error'</code> bleibt scharf — es hat korrekt angeschlagen. Verifizieren, ob ein Loop echt oder künstlich ist: <code>Simulink.BlockDiagram.getAlgebraicLoops('quad_model')</code>.</p>
+  </div>
+
+  <div class="box">
+    <span class="tag">Troubleshooting: „all blocks in the loop have a constant sample time"</span>
+    <p>Ein <em>anderer</em> Loop-Fehler als der künstliche oben: Simulink findet einen Kreis <strong>ohne Dynamik</strong> (nur Gain/Sum/Product/Constant, kein Integrator) und kann ihn nicht iterieren. Zwei Ursachen: <strong>(1)</strong> Eine Rückführung ist <em>vor</em> dem Integrator abgegriffen — <code>v_b</code> und <code>R</code> an B müssen zwingend vom <em>Ausgang</em> der Integratoren kommen, sonst entsteht ein echter algebraischer Kreis <code>v_b → B(Drag) → F_b → C(v̇) → v_b</code>. <strong>(2)</strong> Die Model-Referenzen selbst: an der Referenzgrenze sieht Simulink die Integratoren in C/D nicht und deklariert Durchgriffe pauschal. <strong>Empfehlung für ein Modell dieser Größe:</strong> die <code>Model</code>-Blöcke in <em>atomare Subsystems</em> umwandeln (Rechtsklick → <em>Subsystem &amp; Model Reference → Convert to → Subsystem</em>). Dann sieht der Solver die Integratoren direkt und die ganze Loop-/Sample-Time-Klasse entfällt. Model-Referenzen erst dann, wenn du Komponenten separat für den TC399 codegenerierst.</p>
+  </div>
+
+  <h3>Schritt 5.7 — Solver-Einstellungen</h3>
+  <ul>
+    <li><strong>Entwicklung:</strong> variabler Schritt, <code>ode45</code>, RelTol <code>1e-6</code> — Referenzlösung.</li>
+    <li><strong>Später (Regler, Codegenerierung):</strong> fester Schritt, <code>ode4</code>, T<sub>s</sub> = 1 ms (Rotor-Zeitkonstante 50 ms → Faktor 50 Reserve). Vergleiche beide Läufe: Weichen sie sichtbar ab, ist dein fester Schritt zu grob.</li>
+  </ul>
+
+  <h3>Schritt 5.8 — Logging</h3>
+  <p><strong>Zwei Schritte</strong>, sonst bleibt <code>logsout</code> leer: (1) jede Zustandslinie <em>benennen</em> (Rechtsklick → Properties → Signal name: <code>v_b, om, Phi, p_ned</code>) und (2) <em>markieren</em> (Rechtsklick → Log Signals). Erst die Kombination aus globalem <code>SignalLogging='on'</code> (in der Config) und dem Markieren pro Signal füllt das <code>Simulink.SimulationData.Dataset</code>. Auswertung dann skriptbasiert — Grundlage für automatisierte Tests in 06:</p>
+<pre><span class="fn">run_and_plot.m</span>quad_params;
+out = sim(<span class="st">'quad_model'</span>, <span class="st">'StopTime'</span>, <span class="st">'10'</span>);
+z   = out.logsout.get(<span class="st">'p_ned'</span>).Values;
+plot(z.Time, -z.Data(:,3)); grid <span class="kw">on</span>; xlabel(<span class="st">'t [s]'</span>); ylabel(<span class="st">'Höhe [m]'</span>);</pre>
+
+  <h3>Schritt 5.9 — Reproduzierbares Setup per m-File (empfohlen)</h3>
+  <p>Deine Idee ist goldrichtig: Modellkonfiguration gehört ins Skript, nicht in mühsam geklickte Dialoge. Das ist versionierbar, diffbar und CI-tauglich — dein Azure-DevOps-Reflex. Ich trenne dabei drei Verantwortlichkeiten sauber: <strong>Daten</strong> (Parameter), <strong>Konfiguration</strong> (Solver/Logging/Diagnosen) und <strong>Ausführung</strong> (Lauf + Auswertung). Drei kleine Dateien statt einem Monolithen:</p>
+
+  <table>
+    <thead><tr><th>Datei</th><th>Verantwortung</th><th>ändert sich…</th></tr></thead>
+    <tbody>
+      <tr><td class="m">quad_params.m</td><td>physikalische Parameter (Masse, k_T, Mixer …)</td><td>pro Fahrzeug/Konfiguration</td></tr>
+      <tr><td class="m">code_config.m</td><td>Solver, Logging, Diagnosen — <em>aus Simulink exportiertes</em> ConfigSet</td><td>bei Config-Änderung neu exportieren</td></tr>
+      <tr><td class="m">quad_run.m</td><td>lädt Params, wendet Config an, simuliert</td><td>selten (Einstiegspunkt)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Konfiguration:</strong> Du hast zwei gleichwertige Wege zum selben ConfigSet — <strong>(A)</strong> in Simulink einstellen und über <em>Model Explorer → Configuration → Export to code</em> als <code>code_config.m</code> exportieren (das ist dein bevorzugter Weg und der ASPICE-reifere: die Config ist ein versioniertes Artefakt), oder <strong>(B)</strong> alles handgeschrieben per <code>set_param</code>. Die exportierte <code>code_config.m</code> gibt ein <code>Simulink.ConfigSet</code>-Objekt zurück; <code>quad_run</code> hängt es unten an <em>alle</em> Modelle. Zur Referenz die handgeschriebene Variante (B) — sie zeigt, was im exportierten ConfigSet steckt:</p>
+<pre><span class="fn">quad_config.m — Variante B (handgeschrieben, zur Referenz)</span><span class="kw">function</span> quad_config(mdl, profile)
+<span class="cm">% Konfiguriert Solver, Logging und Diagnosen des Modells programmatisch.</span>
+<span class="cm">% profile: 'dev' (variabler Schritt, Referenz) oder 'rt' (fester Schritt, Codegen-nah)</span>
+<span class="kw">if</span> nargin &lt; 2, profile = <span class="st">'dev'</span>; <span class="kw">end</span>
+<span class="kw">if</span> ~bdIsLoaded(mdl), load_system(mdl); <span class="kw">end</span>
+
+<span class="kw">switch</span> profile
+  <span class="kw">case</span> <span class="st">'dev'</span>
+    set_param(mdl, <span class="st">'SolverType'</span>,<span class="st">'Variable-step'</span>, <span class="st">'Solver'</span>,<span class="st">'ode45'</span>, ...
+                   <span class="st">'RelTol'</span>,<span class="st">'1e-6'</span>, <span class="st">'AbsTol'</span>,<span class="st">'1e-8'</span>, <span class="st">'MaxStep'</span>,<span class="st">'1e-2'</span>);
+  <span class="kw">case</span> <span class="st">'rt'</span>
+    set_param(mdl, <span class="st">'SolverType'</span>,<span class="st">'Fixed-step'</span>, <span class="st">'Solver'</span>,<span class="st">'ode4'</span>, <span class="st">'FixedStep'</span>,<span class="st">'1e-3'</span>);
+  <span class="kw">otherwise</span>
+    error(<span class="st">'quad_config:profile'</span>, <span class="st">'Unbekanntes Profil: %s'</span>, profile);
+<span class="kw">end</span>
+
+set_param(mdl, <span class="st">'StopTime'</span>,<span class="st">'10'</span>);
+
+<span class="cm">% Logging im Dataset-Format; ein Bus 'logsout'</span>
+set_param(mdl, <span class="st">'SignalLogging'</span>,<span class="st">'on'</span>, <span class="st">'SignalLoggingName'</span>,<span class="st">'logsout'</span>, ...
+               <span class="st">'SaveOutput'</span>,<span class="st">'on'</span>, <span class="st">'OutputSaveName'</span>,<span class="st">'yout'</span>, ...
+               <span class="st">'SaveFormat'</span>,<span class="st">'Dataset'</span>, <span class="st">'ReturnWorkspaceOutputs'</span>,<span class="st">'on'</span>);
+
+<span class="cm">% Diagnosen scharf: Fehler früh statt spät</span>
+set_param(mdl, <span class="st">'AlgebraicLoopMsg'</span>,<span class="st">'error'</span>, ...
+               <span class="st">'ArtificialAlgebraicLoopMsg'</span>,<span class="st">'error'</span>, ...
+               <span class="st">'UnconnectedInputMsg'</span>,<span class="st">'error'</span>, ...
+               <span class="st">'UnconnectedOutputMsg'</span>,<span class="st">'error'</span>);
+
+<span class="cm">% Künstliche algebraische Schleifen aus Model-Referenzen vermeiden:</span>
+<span class="cm">% Simulink berechnet die Durchgriffe dann portweise statt pauschal.</span>
+refs = find_mdlrefs(mdl);                 <span class="cm">% alle referenzierten Modelle + Top</span>
+<span class="kw">for</span> k = 1:numel(refs)
+    <span class="kw">if</span> ~bdIsLoaded(refs{k}), load_system(refs{k}); <span class="kw">end</span>
+    <span class="kw">try</span>   <span class="cm">% am aktiven ConfigSet, nicht am Modell (Release-abhängig)</span>
+        set_param(getActiveConfigSet(refs{k}), <span class="st">'ModelReferenceMinAlgLoopOccurrences'</span>,<span class="st">'on'</span>);
+    <span class="kw">catch</span>
+        warning(<span class="st">'quad:minalg'</span>, <span class="st">'ModelReferenceMinAlgLoopOccurrences nicht setzbar — in der GUI setzen.'</span>);
+    <span class="kw">end</span>
+<span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+  <p><strong>quad_run.m</strong> — dein Einstiegspunkt, jetzt mit der exportierten <code>code_config.m</code>. Die Config wird auf das Top-Modell <em>und</em> jedes referenzierte Modell (B, C, D) gelegt — dadurch erbt jedes Modell u. a. <code>ModelReferenceMinAlgLoopOccurrences</code> und der künstliche algebraic loop aus 5.6 ist erledigt:</p>
+<pre><span class="fn">quad_run.m</span><span class="kw">function</span> simOut = quad_run(stopTime)
+<span class="cm">% Einstiegspunkt: Parameter + exportierte Konfiguration laden und simulieren.</span>
+mdl = <span class="st">'quad_model'</span>;
+
+<span class="kw">if</span> ~evalin(<span class="st">'base'</span>,<span class="st">'exist(''m'',''var'')'</span>)  <span class="cm">% Params nur laden, wenn nicht vorhanden</span>
+    quad_params;                               <span class="cm">% (sonst würde ein Cd-Override im Test überschrieben)</span>
+<span class="kw">end</span>
+<span class="kw">if</span> ~bdIsLoaded(mdl), load_system(mdl); <span class="kw">end</span>
+
+<span class="cm">% code_config.m auf Top-Modell UND alle Referenzen anwenden</span>
+refs = find_mdlrefs(mdl);                      <span class="cm">% {B, C, D, ..., quad_model}</span>
+<span class="kw">for</span> k = 1:numel(refs)
+    <span class="kw">if</span> ~bdIsLoaded(refs{k}), load_system(refs{k}); <span class="kw">end</span>
+    applyConfig(refs{k}, <span class="st">'quadCfg'</span>);
+<span class="kw">end</span>
+
+<span class="kw">if</span> nargin &gt;= 1, set_param(mdl, <span class="st">'StopTime'</span>, num2str(stopTime)); <span class="kw">end</span>
+simOut = sim(mdl);                             <span class="cm">% Ergebnis enthält Dataset 'logsout'</span>
+<span class="kw">end</span>
+
+<span class="cm">% ---- lokale Hilfsfunktion: ConfigSet idempotent anhängen &amp; aktivieren ----</span>
+<span class="kw">function</span> applyConfig(mdl, cfgName)
+cfg = code_config();                           <span class="cm">% frische ConfigSet-Kopie pro Modell</span>
+cfg.Name = cfgName;
+<span class="kw">try</span>                                            <span class="cm">% künstl. alg. Schleifen minimieren — am ConfigSet, nicht am Modell</span>
+    cfg.set_param(<span class="st">'ModelReferenceMinAlgLoopOccurrences'</span>,<span class="st">'on'</span>);
+<span class="kw">catch</span>
+    warning(<span class="st">'quad:minalg'</span>, ...
+        <span class="st">'ModelReferenceMinAlgLoopOccurrences nicht setzbar — in der Simulink-GUI setzen und code_config neu exportieren.'</span>);
+<span class="kw">end</span>
+<span class="kw">if</span> any(strcmp(getConfigSets(mdl), cfgName))    <span class="cm">% schon vorhanden? -> ersetzen</span>
+    <span class="kw">if</span> strcmp(getActiveConfigSet(mdl).Name, cfgName)
+        others = setdiff(getConfigSets(mdl), cfgName);
+        setActiveConfigSet(mdl, others{1});    <span class="cm">% 'Configuration' bleibt immer erhalten</span>
+    <span class="kw">end</span>
+    detachConfigSet(mdl, cfgName);
+<span class="kw">end</span>
+attachConfigSet(mdl, cfg);
+setActiveConfigSet(mdl, cfgName);
+<span class="kw">end</span></pre>
+  <p class="note">Aufruf: <code>out = quad_run;</code> oder <code>out = quad_run(1);</code> für 1 s Simzeit. Ersetzt <code>run_and_plot.m</code> (Schnelleinstieg) <em>und</em> <code>quad_config.m</code> (Variante B). Die Profil-Umschaltung dev/rt entfällt hier, weil ein exportiertes ConfigSet statisch ist — brauchst du beide, exportiere <code>code_config_dev.m</code> und <code>code_config_rt.m</code> und übergib den Funktionsnamen an <code>applyConfig</code>.</p>
+  <p class="note" style="border-left:4px solid var(--orange);padding-left:12px"><strong>Falls <code>ModelReferenceMinAlgLoopOccurrences</code> nicht scriptbar ist</strong> (Release-abhängig; das <code>try/catch</code> fängt es ab): den Haken einmalig in jedem referenzierten Modell unter <em>Configuration Parameters → Model Referencing → „Minimize algebraic loop occurrences"</em> setzen und <code>code_config.m</code> danach <em>neu exportieren</em> — dann trägt das ConfigSet das Flag von selbst. Namen in deiner Release prüfen: <code>getActiveConfigSet('quad_model').get_param('ModelReferenceMinAlgLoopOccurrences')</code>.</p>
+
+  <div class="box">
+    <span class="tag">Zwei Punkte, die beim Exportieren leicht untergehen</span>
+    <p><strong>1. Erst scharf stellen, dann exportieren:</strong> Die exportierte <code>code_config.m</code> friert genau die Einstellungen ein, die beim Export aktiv waren. Setz also <code>AlgebraicLoopMsg='error'</code>, das Logging und vor allem <code>ModelReferenceMinAlgLoopOccurrences='on'</code> <em>vor</em> dem Export (per Variante B oder GUI) — sonst fehlen sie im Artefakt. <strong>2. Signatur prüfen:</strong> Der Export liefert üblicherweise <code>function cs = code_config()</code>, das ein ConfigSet <em>zurückgibt</em>. Liefert deine Datei stattdessen eine Funktion, die direkt aufs Modell wirkt, passt du <code>applyConfig</code> entsprechend an (dann kein <code>attachConfigSet</code> nötig).</p>
+  </div>
+
+  <div class="box blue">
+    <span class="tag">Wo die Parameter „leben" — drei Reifegrade</span>
+    <p><strong>1. Base Workspace</strong> (via <code>quad_params</code>): pragmatisch, sofort startklar — aber die Werte schwirren global herum und sind nicht mit dem Modell versioniert. Guter Start. <strong>2. Model Workspace:</strong> Parameter gehören dem Modell, werden mit ihm gespeichert, kein globaler Zustand. <strong>3. Simulink Data Dictionary (.sldd):</strong> die ASPICE-reife Lösung — Daten getrennt versioniert, teilbar über mehrere Modelle, klare Schnittstelle. Für dein Lernprojekt reicht Stufe 1; wenn daraus ein ernsthaftes Repo wird, wandere auf Stufe 3. Der Umzug ist später schmerzlos, weil <code>quad_params.m</code> die einzige Datenquelle ist.</p>
+  </div>
+  <div class="box">
+    <span class="tag">Nächster Schritt Richtung CI</span>
+    <p>Mit dieser Struktur ist der Testrunner aus Abschnitt 06 nur noch ein Dreizeiler: <code>quad_run</code> im <code>setup</code> jedes Testfalls, <code>assert</code> auf das zurückgegebene <code>logsout</code>. Ein <code>runtests('tests')</code> in deiner Azure-Pipeline, und jede Modelländerung wird automatisch gegen T1–T8 geprüft — dasselbe Muster wie deine MiL-Regression bei Freudenberg, nur ohne Simulink Test.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 06 -->
+<section id="s06">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Verifikation: Open-Loop-Tests (vor jedem Regler!)</h2></div>
+  <p>Jetzt kommt der Teil, den fast alle überspringen — und dann wochenlang einen „instabilen Regler“ debuggen, der in Wahrheit ein Vorzeichenfehler in der Strecke ist. Jeder Test hat ein <strong>analytisch bekanntes Sollergebnis</strong>. Stimulus: <code>Step</code>-/<code>Constant</code>-Blöcke direkt auf <code>w_cmd</code>, kein Regler im Loop.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Testfall</th><th>Stimulus (w_cmd)</th><th>Erwartetes Ergebnis (analytisch)</th></tr></thead>
+    <tbody>
+      <tr><td class="m">T1</td><td>Freier Fall <em>(Drag=0)</em></td><td class="m">[0 0 0 0]</td><td>z̈ = +g → nach 1 s: w = 9.81 m/s, Fallhöhe 4.905 m. Lage bleibt [0 0 0]. <strong>Nur ohne Drag analytisch</strong> — sonst w(1s)&lt;9.81.</td></tr>
+      <tr><td class="m">T2</td><td>Schwebeflug</td><td class="m">w_hover·[1 1 1 1]</td><td>Alle Zustände bleiben (numerisch) konstant. Drift &lt; 1e-6 über 60 s.</td></tr>
+      <tr><td class="m">T3</td><td>Steigflug</td><td class="m">1.05·w_hover·[1 1 1 1]</td><td>Höhe steigt, Lage bleibt 0. Anfangsbeschleunigung ≈ g·(1.05²−1) ≈ 1.0 m/s².</td></tr>
+      <tr><td class="m">T4</td><td>Roll-Vorzeichen</td><td class="m">M3,M4 +5 %, M1,M2 −5 %</td><td>p &gt; 0 (rollt nach rechts), y-Position wird positiv (driftet nach Ost).</td></tr>
+      <tr><td class="m">T5</td><td>Pitch-Vorzeichen</td><td class="m">M1,M4 +5 %, M2,M3 −5 %</td><td>q &gt; 0 (Nase hoch), x-Geschwindigkeit wird negativ (driftet rückwärts).</td></tr>
+      <tr><td class="m">T6</td><td>Yaw-Vorzeichen</td><td class="m">M1,M3 +5 %, M2,M4 −5 %</td><td>r &gt; 0 (Nase dreht nach rechts). Höhe sinkt minimal (Schub² nichtlinear).</td></tr>
+      <tr><td class="m">T7</td><td>Impulserhaltung</td><td class="m">T2, dann Drag = 0 setzen, IC ψ̇≠0</td><td>r bleibt exakt konstant (kein Moment → Drallerhaltung um z).</td></tr>
+      <tr><td class="m">T8</td><td>Energie-Plausibilität</td><td class="m">T1 mit IC-Höhe 10 m, Drag = 0</td><td>½mv² beim Aufschlag = m·g·10 (Energieerhaltung, prüft Integration).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box">
+    <span class="tag">MiL-Denke ohne Simulink Test</span>
+    <p>Simulink Test hast du ohne Toolbox nicht — die Systematik kannst du trotzdem 1:1 übernehmen: ein MATLAB-Skript pro Testfall mit <code>sim()</code>-Aufruf, harten <code>assert()</code>-Toleranzen und einem Runner, der alle Tests durchzieht. Basis-MATLAB bringt dafür sogar ein echtes Unit-Test-Framework mit (<code>matlab.unittest</code>, kein Toolbox-Bestandteil). Ergebnis: reproduzierbare Regression nach jeder Modelländerung — dein CI/CD-Reflex aus Azure DevOps funktioniert hier lokal genauso.</p>
+  </div>
+<pre><span class="fn">tests/test_T1_freefall.m</span><span class="kw">function</span> test_T1_freefall
+<span class="cm">% Reiner Integrations-/Gravitationstest -> Drag für diesen Fall AUS,</span>
+<span class="cm">% sonst bremst -Cd*v_b und w(1s) &lt; 9.81 (kein analytischer Sollwert mehr).</span>
+quad_params;                                     <span class="cm">% Params ZUERST, dann überschreiben</span>
+assignin(<span class="st">'base'</span>,<span class="st">'w_cmd_const'</span>,[0;0;0;0]);       <span class="cm">% alle Motoren aus</span>
+Cd_save = evalin(<span class="st">'base'</span>,<span class="st">'Cd'</span>);
+assignin(<span class="st">'base'</span>,<span class="st">'Cd'</span>, zeros(3));
+c = onCleanup(@() assignin(<span class="st">'base'</span>,<span class="st">'Cd'</span>, Cd_save));  <span class="cm">% quad_run lässt Cd nun in Ruhe (m existiert)</span>
+
+out = quad_run(1);
+names = out.logsout.getElementNames;
+assert(any(strcmp(names,<span class="st">'v_b'</span>)), <span class="st">'Signal v_b nicht geloggt.'</span>);
+
+el = out.logsout.get(<span class="st">'v_b'</span>);
+<span class="kw">if</span> isa(el,<span class="st">'Simulink.SimulationData.Dataset'</span>)   <span class="cm">% mehrere v_b -> erstes nehmen</span>
+    warning(<span class="st">'Mehrere Signale heißen v_b — doppelten Log-Marker entfernen.'</span>);
+    el = el{1};
+<span class="kw">end</span>
+vb = el.Values;
+w  = squeeze(vb.Data(3,1,:));                <span class="cm">% [3x1xN]-Logform -> w-Komponente über t</span>
+w_end = w(<span class="kw">end</span>);
+assert(abs(w_end - 9.81) &lt; 0.02, <span class="st">'T1 FAIL: w(1s)=%.3f, erwartet 9.81'</span>, w_end);
+<span class="kw">end</span></pre>
+  <p class="note">Der <code>onCleanup</code> setzt <code>Cd</code> auch bei einem <code>assert</code>-Abbruch zuverlässig zurück — so verseucht ein fehlgeschlagener Test nicht die folgenden.</p>
+  <p class="note"><strong>„Unrecognized ... 'Values' for class ... Dataset"?</strong> Dann heißen <em>zwei</em> Signale <code>v_b</code> (meist ein alter, toter Log-Marker plus der neue) — <code>get('v_b')</code> liefert dann eine Sammlung ohne <code>.Values</code>. Prüfen: <code>sum(strcmp(out.logsout.getElementNames,'v_b'))</code> &gt; 1. Fix: den falschen Log-Haken entfernen. — <strong>Log-Form beachten:</strong> Ein 3×1-Vektorsignal wird als <code>[3×1×N]</code> geloggt (im Data Inspector als „<code>v_b (3×1)</code>" sichtbar), ein 1-D-Vektor der Breite 3 dagegen als <code>[N×3]</code>. Deshalb hier <code>squeeze(vb.Data(3,1,:))</code> statt <code>Data(:,3)</code>. Hängst du in C/D einen <code>Reshape</code>-Block (auf <em>1-D</em>) hinter die Zustandssignale, wird überall die einfachere <code>[N×3]</code>-Form geloggt.</p>
+
+  <p><strong>Separater Drag-Test</strong> (prüft, dass die Reibung <em>wirkt</em> — komplementär zu T1):</p>
+<pre><span class="fn">tests/test_T1b_drag.m</span><span class="kw">function</span> test_T1b_drag
+<span class="cm">% Mit Drag muss w(1s) spürbar unter dem reibungsfreien Wert 9.81 liegen.</span>
+assignin(<span class="st">'base'</span>,<span class="st">'w_cmd_const'</span>,[0;0;0;0]);
+out = quad_run(1);
+el = out.logsout.get(<span class="st">'v_b'</span>);
+<span class="kw">if</span> isa(el,<span class="st">'Simulink.SimulationData.Dataset'</span>), el = el{1}; <span class="kw">end</span>
+vb = el.Values;
+w = squeeze(vb.Data(3,1,:)); w_end = w(<span class="kw">end</span>);
+assert(w_end &lt; 9.81 - 0.5, <span class="st">'Drag wirkt nicht: w(1s)=%.3f'</span>, w_end);
+assert(w_end &gt; 7.0,        <span class="st">'Drag zu stark/Modell falsch: w(1s)=%.3f'</span>, w_end);
+<span class="kw">end</span></pre>
+
+  <h3>Komplette Testsuite &amp; Runner</h3>
+  <p>Das vollständige Set T1–T8 plus Runner gibt es als fertige Dateien. Ablage: <code>run_all_tests.m</code> in der Projektwurzel, die acht Testfälle (jeweils self-contained) im Unterordner <code>tests/</code>.</p>
+
+  <div class="box blue">
+    <span class="tag">Voraussetzungen, sonst schlagen Tests scheinbar grundlos fehl</span>
+    <p><strong>1. Diese Signale auf oberster Ebene benennen und mit Log-Haken markieren — je genau einmal (keine Duplikate):</strong> <code>v_b</code>, <code>om</code>, <code>Phi</code>, <code>p_ned</code>. <strong>2. Für T7</strong> muss die <em>Initial condition</em> des <code>om</code>-Integrators auf den Parameter <code>om0</code> gesetzt sein; ergänze in <code>quad_params</code>: <code>om0 = [0;0;0];</code> (analog optional <code>v0, Phi0, p0</code>). Ist das nicht gesetzt, meldet T7 sauber <em>SKIP</em> statt eines Fehlers. <strong>3.</strong> Alle Tests re-baseln zu Beginn per <code>quad_params</code> und übergeben ihren Stimulus über <code>w_cmd_const</code> — dein Constant-Block muss diesen Workspace-Wert lesen. <strong>4.</strong> Die Helfer <code>getsig</code>/<code>getcomp</code> stecken als lokale Funktionen in jeder Testdatei — es gibt keine externen Helfer-Dateien, also keine Pfad-Falle.</p>
+  </div>
+  <div class="box">
+    <span class="tag">Warum T2/T3 die stationäre Beschleunigung messen (Motor-Anlauf)</span>
+    <p>Die Motoren starten bei 0 rad/s und laufen per PT1 (τ) auf ihren Sollwert hoch. Beim Hover-Kommando sackt die Drohne dadurch einmal um <code>≈ g·1.5·τ</code> durch und behält diese Geschwindigkeit (ohne Regler kein Rückstellen) — „Hover" heißt also <em>nicht</em> w = 0, sondern <strong>stationär keine Nettobeschleunigung</strong>. Deshalb prüfen T2 (Fenster t&gt;1 s) und T3 (t&gt;0.3 s) die Steigung von w <em>nach</em> dem Hochlauf, nicht den Absolutwert. Alternative, falls du einen trimmten Start willst: die IC des Motor-Integrators auf <code>w_hover</code> parametrisieren — dann entfällt der Transient ganz.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Datei</th><th>prüft</th><th>Kernaussage</th></tr></thead>
+    <tbody>
+      <tr><td class="m">test_T1_freefall</td><td>Integration + Gravitation</td><td>w(1s)=9.81 (Drag=0)</td></tr>
+      <tr><td class="m">test_T2_hover</td><td>Schub-/Gravitationsbilanz</td><td>stationär keine Dauerbeschleunigung</td></tr>
+      <tr><td class="m">test_T3_climb</td><td>vertikale Dynamik</td><td>Anfangsbeschl. ~1.0 m/s² aufwärts</td></tr>
+      <tr><td class="m">test_T4_roll</td><td>Mixer-Vorzeichen Roll</td><td>p&gt;0, φ&gt;0</td></tr>
+      <tr><td class="m">test_T5_pitch</td><td>Mixer-Vorzeichen Pitch</td><td>q&gt;0, θ&gt;0</td></tr>
+      <tr><td class="m">test_T6_yaw</td><td>Mixer-Vorzeichen Yaw (kQ)</td><td>r&gt;0, ψ&gt;0</td></tr>
+      <tr><td class="m">test_T7_yawrate</td><td>Drallerhaltung</td><td>r bleibt konstant (kein Moment)</td></tr>
+      <tr><td class="m">test_T8_energy</td><td>Positions-/Geschw.-Konsistenz</td><td>½v² = g·Fallhöhe</td></tr>
+      <tr><td class="m">(lokale Helfer)</td><td>in jeder Testdatei</td><td><code>getsig</code>/<code>getcomp</code>: robuster Zugriff, keine externen Dateien</td></tr>
+    </tbody>
+  </table>
+
+  <p>Der Runner ruft alle Tests der Reihe nach auf, fängt jeden Fehler ab und zählt am Ende Bestanden/Fehlgeschlagen/Übersprungen samt Namen der fehlgeschlagenen:</p>
+<pre><span class="fn">run_all_tests.m</span><span class="kw">function</span> results = run_all_tests
+here = fileparts(mfilename(<span class="st">'fullpath'</span>));
+addpath(here, fullfile(here,<span class="st">'tests'</span>));      <span class="cm">% Projektwurzel + tests/</span>
+
+tests = { @test_T1_freefall, <span class="st">'T1  Freier Fall'</span>
+          @test_T2_hover,    <span class="st">'T2  Schwebeflug'</span>
+          @test_T3_climb,    <span class="st">'T3  Steigflug'</span>
+          @test_T4_roll,     <span class="st">'T4  Roll-Vorzeichen'</span>
+          @test_T5_pitch,    <span class="st">'T5  Pitch-Vorzeichen'</span>
+          @test_T6_yaw,      <span class="st">'T6  Yaw-Vorzeichen'</span>
+          @test_T7_yawrate,  <span class="st">'T7  Drallerhaltung'</span>
+          @test_T8_energy,   <span class="st">'T8  Energieerhaltung'</span> };
+
+n = size(tests,1); status = strings(n,1); msg = strings(n,1);
+fprintf(<span class="st">'
+=== QUAD 6-DoF MiL-Testsuite ===
+
+'</span>);
+<span class="kw">for</span> k = 1:n
+    <span class="kw">try</span>
+        tests{k,1}();  status(k) = <span class="st">"PASS"</span>;
+        fprintf(<span class="st">'  [PASS]  %s
+'</span>, tests{k,2});
+    <span class="kw">catch</span> e
+        <span class="kw">if</span> strcmp(e.identifier,<span class="st">'quad:skip'</span>)
+            status(k)=<span class="st">"SKIP"</span>; msg(k)=string(e.message);
+            fprintf(<span class="st">'  [SKIP]  %s   ->  %s
+'</span>, tests{k,2}, e.message);
+        <span class="kw">else</span>
+            status(k)=<span class="st">"FAIL"</span>; msg(k)=string(e.message);
+            fprintf(<span class="st">'  [FAIL]  %s   ->  %s
+'</span>, tests{k,2}, e.message);
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+<span class="kw">end</span>
+quad_params;                                 <span class="cm">% Defaults wiederherstellen</span>
+
+nP=sum(status==<span class="st">"PASS"</span>); nF=sum(status==<span class="st">"FAIL"</span>); nS=sum(status==<span class="st">"SKIP"</span>);
+fprintf(<span class="st">'
+  Bestanden: %d/%d   Fehlgeschlagen: %d   Uebersprungen: %d
+'</span>, nP,n,nF,nS);
+<span class="kw">if</span> nF&gt;0, fprintf(<span class="st">'  Fehlgeschlagen: %s
+'</span>, strjoin(tests(status==<span class="st">"FAIL"</span>,2),<span class="st">', '</span>)); <span class="kw">end</span>
+<span class="kw">if</span> nargout&gt;0
+    results = table((1:n)', string(tests(:,2)), status, msg, ...
+        <span class="st">'VariableNames'</span>, {<span class="st">'Nr'</span>,<span class="st">'Test'</span>,<span class="st">'Status'</span>,<span class="st">'Meldung'</span>});
+<span class="kw">end</span>
+<span class="kw">end</span></pre>
+  <p class="note">Aufruf: <code>run_all_tests</code> (Bericht) oder <code>r = run_all_tests;</code> (zusätzlich Ergebnistabelle). Beispiel-Ausgabe:<br>
+  <code>[PASS]  T1  Freier Fall</code> … <code>[FAIL]  T4  Roll-Vorzeichen  -&gt;  p nicht &gt; 0 …</code> … <code>Bestanden: 6/8   Fehlgeschlagen: 1   Uebersprungen: 1</code></p>
+  <p class="note">Wichtig: Jeder Testfall geht über <code>quad_run</code>, nie über ein blankes <code>sim('quad_model')</code> — sonst greifen weder <code>ModelReferenceMinAlgLoopOccurrences</code> (algebraic loop!) noch das Logging, und du bekommst genau die zwei Fehler „algebraic loop" + „Dataset element 'v_b' not found".</p>
+  <p class="note" style="border-left:4px solid var(--orange);padding-left:12px"><strong>T1 schlägt fehl mit <code>w(1s)≈0</code>, obwohl <code>v_dot(0)=9.81</code> korrekt ist?</strong> Dann integriert das Modell zwar (erkennbar daran, dass der Drag <code>v_dot</code> über die Zeit senkt), aber du loggst die <em>falsche</em> <code>v_b</code>-Linie — der Log-Marker sitzt auf einem toten Abzweig statt auf der Integrator-Ausgangslinie, die in <code>eom_rhs.v_b</code> zurückgeht. Kurzcheck: <code>plot(vb.Time, squeeze(vb.Data))</code> — bleibt es flach bei 0, den Namen/Log-Haken auf die echte Feedback-Linie umsetzen. — <strong>Fehlt dagegen die Gravitation ganz</strong> (<code>v_dot(0)=0</code>): Häufigste Ursache: B wurde für die M-Function-Variante vereinfacht (Gravitationszweig raus), C ist aber noch die Blockgrafik-Variante — dann rechnet <em>niemand</em> die Gravitation. Sie muss in <strong>genau einer</strong> Stelle sitzen: entweder in B (Blockgrafik-Variante) oder in <code>eom_rhs</code> (M-Function-Variante, <code>g</code> als Parameter-Scope). Schnellprobe: <code>F_b</code> loggen, <code>F.Data(1,:)</code> muss <code>[0 0 ~11.77]</code> sein, nicht <code>[0 0 0]</code>.</p>
+</section>
+
+<!-- ============================================================ 07 -->
+<section id="s07">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Trimmung &amp; Linearisierung</h2></div>
+  <p><strong>Trimmpunkt Schwebeflug:</strong> alle Zustände 0 (bis auf Höhe), ω<sub>i</sub> = ω<sub>hover</sub> = √(mg/4k<sub>T</sub>) — hast du schon im Parameterskript. Um diesen Punkt linearisierst du mit <code>linmod</code> (Bestandteil von Simulink, keine Toolbox):</p>
+<pre><span class="fn">linearize_hover.m</span>quad_params;
+x0 = zeros(16,1);                 <span class="cm">% 12 Starrkörper + 4 Motorzustände (PT1)</span>
+x0(13:16) = w_hover;
+u0 = w_hover*ones(4,1);
+[A,B,C,D] = linmod(<span class="st">'quad_model'</span>, x0, u0);
+disp(eig(A));                     <span class="cm">% Eigenwerte: Pole der Strecke</span></pre>
+  <p>Was du an <code>eig(A)</code> ablesen und <strong>verstehen</strong> solltest:</p>
+  <ul>
+    <li>Viele Pole bei/nahe <strong>0</strong>: Der Quadrocopter ist eine Kette von Integratoren — Lage ist Doppelintegrator des Moments, Position Doppelintegrator der (über die Lage erzeugten) Kraft. Deshalb ist er <em>ohne Regler nicht stabil, sondern grenzstabil bis instabil</em>.</li>
+    <li>Vier Pole bei <strong>−1/τ = −20</strong>: die Motordynamik.</li>
+    <li>Roll/Pitch → x/y-Position sind über die Gravitation gekoppelt: kleiner Winkel θ kippt den Schub → horizontale Beschleunigung ≈ −g·θ. Das ist der Kern der Kaskadenstruktur in 08.</li>
+  </ul>
+  <p class="note">Ohne Control System Toolbox fehlen dir <code>ss</code>-Komfort, Bode-Plots und <code>place</code> — Eigenwerte (<code>eig</code>), Sprungantworten (per Simulation) und Handrechnung am Doppelintegrator reichen für alles Folgende völlig aus. Und ehrlich: PID-Tuning am Doppelintegrator von Hand ist der Lerneffekt, den eine Auto-Tuning-App dir nimmt.</p>
+</section>
+
+<!-- ============================================================ 08 -->
+<section id="s08">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Kaskadenregelung — Standardarchitektur</h2></div>
+  <p>Die Struktur folgt direkt aus der Physik: Momente wirken <em>schnell</em> auf Drehraten, Drehraten integrieren zur Lage, die Lage kippt den Schub und erzeugt <em>langsam</em> horizontale Bewegung. Also von innen nach außen, jede Schleife ~4–10× langsamer als die innere:</p>
+
+  <div class="dia">
+    <svg viewBox="0 0 920 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kaskadenregler-Struktur">
+      <style>
+        .cb{fill:#fff;stroke:#16212B;stroke-width:2}
+        .cbt{font:600 12.5px 'Space Grotesk',sans-serif;fill:#16212B;text-anchor:middle}
+        .cbs{font:10.5px 'IBM Plex Mono',monospace;fill:#4A5A68;text-anchor:middle}
+        .cl{stroke:#16212B;stroke-width:1.6;fill:none;marker-end:url(#arr3)}
+        .csig{font:600 11px 'IBM Plex Mono',monospace;fill:#123E7C;text-anchor:middle}
+      </style>
+      <defs><marker id="arr3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#16212B"/></marker></defs>
+      <text x="34" y="66" class="csig">x_soll</text>
+      <path class="cl" d="M60,62 L96,62"/>
+      <rect class="cb" x="98" y="34" width="130" height="56"/><text x="163" y="58" class="cbt">Position (PID)</text><text x="163" y="76" class="cbs">~1–2 Hz BW</text>
+      <path class="cl" d="M228,62 L266,62"/><text x="247" y="52" class="csig">φ,θ_soll</text>
+      <rect class="cb" x="268" y="34" width="130" height="56"/><text x="333" y="58" class="cbt">Lage (P/PD)</text><text x="333" y="76" class="cbs">~5–10 Hz</text>
+      <path class="cl" d="M398,62 L436,62"/><text x="417" y="52" class="csig">p,q,r_soll</text>
+      <rect class="cb" x="438" y="34" width="130" height="56"/><text x="503" y="58" class="cbt">Rate (PID)</text><text x="503" y="76" class="cbs">~20–40 Hz</text>
+      <path class="cl" d="M568,62 L606,62"/><text x="587" y="52" class="csig">τ_soll</text>
+      <rect class="cb" x="608" y="34" width="120" height="56"/><text x="668" y="58" class="cbt">Mixer⁻¹</text><text x="668" y="76" class="cbs">ω² = MIX⁻¹·u</text>
+      <path class="cl" d="M728,62 L766,62"/><text x="747" y="52" class="csig">ω_cmd</text>
+      <rect class="cb" x="768" y="34" width="120" height="56"/><text x="828" y="58" class="cbt">Strecke</text><text x="828" y="76" class="cbs">Modell aus 05</text>
+      <path class="cl" d="M828,90 L828,126 L163,126 L163,92"/>
+      <text x="495" y="142" class="cbs">Zustandsrückführung (in der Simulation ideal — später kommen Sensormodelle dazwischen)</text>
+    </svg>
+    <div class="cap">ABB. 3 — KASKADE: POSITION → LAGE → RATE → MIXER⁻¹ → STRECKE. HÖHE (z / SCHUB T) LÄUFT ALS EIGENE PID-SCHLEIFE PARALLEL.</div>
+  </div>
+
+  <h3>Umsetzung &amp; Tuning-Reihenfolge (nur Basis-Blöcke)</h3>
+  <ol>
+    <li><strong>Allokation zuerst:</strong> Regler-Ausgänge sind [T; τx; τy; τz]. Die Umrechnung auf Drehzahlen: <code>ω² = MIX⁻¹·u</code>, dann <code>sqrt</code> + <code>Saturation</code>. <code>inv(MIX)</code> einmal im Parameterskript berechnen.</li>
+    <li><strong>Rate-Loop (innen) zuerst tunen:</strong> Lage- und Positionsregler deaktivieren, p_soll als Step. <code>PID Controller</code>-Block (Basis-Simulink!), Start: reiner P, K<sub>P</sub> hoch bis leichtes Überschwingen, dann etwas D, minimal I. Faustregel Doppelintegrator: erst Rate sauber, sonst wird alles darüber Kaffeesatz.</li>
+    <li><strong>Lage-Loop:</strong> P-Regler reicht oft (Rate-Loop macht die Dämpfung). Step auf φ_soll = 10°, Ziel: kein bleibender Fehler, Überschwingen &lt; 10 %.</li>
+    <li><strong>Höhen-Loop:</strong> PID auf −z mit Vorsteuerung T<sub>ff</sub> = m·g (Hover-Feedforward — reduziert die I-Anteil-Arbeit massiv).</li>
+    <li><strong>Positions-Loop (außen) zuletzt:</strong> PD auf x/y, Ausgang = Sollwinkel, begrenzt auf ±20° (<code>Saturation</code> — Anti-Windup im PID-Block aktivieren: <em>clamping</em>).</li>
+  </ol>
+  <div class="box blue">
+    <span class="tag">Kleinwinkel-Vorsteuerung verstehen</span>
+    <p>Warum funktioniert die Kaskade? Für kleine Winkel gilt aus (4.1)/(4.4): ẍ ≈ −g·θ und ÿ ≈ +g·φ. Der Positionsregler „bestellt“ also Beschleunigung in Form von Winkeln: θ_soll = −ẍ_soll/g. Wenn du das einmal selbst hergeleitet hast, verstehst du jeden Flight-Stack (PX4, Betaflight) auf Architekturebene.</p>
+  </div>
+</section>
+
+<!-- ============================================================ 09 -->
+<section id="s09">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Closed-Loop-Testszenarien &amp; Abnahme-Checkliste</h2></div>
+  <p>Jetzt testest du wie im MiL: definierte Szenarien, messbare Kriterien, automatisierter Runner.</p>
+  <table>
+    <thead><tr><th>Szenario</th><th>Aufbau (Basis-Blöcke)</th><th>Abnahmekriterium (Beispiel)</th></tr></thead>
+    <tbody>
+      <tr><td>Höhensprung 0 → 5 m</td><td class="m">Step auf z_soll</td><td>Anstiegszeit &lt; 3 s, Überschwingen &lt; 5 %, e_∞ &lt; 2 cm</td></tr>
+      <tr><td>Positionssprung 5 m Nord</td><td class="m">Step auf x_soll</td><td>|θ| bleibt &lt; 20°, keine Höhenkopplung &gt; 20 cm</td></tr>
+      <tr><td>Windböe</td><td class="m">Step/Pulse 2 N auf F_b,x (Sum in Subsystem B)</td><td>Positionsabweichung &lt; 0.5 m, Ausregelzeit &lt; 4 s</td></tr>
+      <tr><td>Turbulenz</td><td class="m">Band-Limited White Noise auf F_b</td><td>σ(Position) unter Grenzwert, keine Sättigungs-Dauerläufe</td></tr>
+      <tr><td>Robustheit Masse</td><td class="m">Skript-Sweep m ∈ [0.8 … 1.2]·m₀</td><td>Alle Kriterien oben weiter erfüllt</td></tr>
+      <tr><td>Schwerpunktfehler</td><td class="m">Konstantes Störmoment 0.05 Nm auf τx</td><td>I-Anteil regelt aus, φ_∞ = 0</td></tr>
+      <tr><td>Motorausfall (Analyse)</td><td class="m">Switch: M3 → 0 bei t = 5 s</td><td>Kein Kriterium — beobachten &amp; verstehen, warum ein Quad das nicht überlebt</td></tr>
+      <tr><td>Trajektorie</td><td class="m">Sine/Signal Builder: Kreis r = 3 m</td><td>Bahnfehler &lt; 0.3 m bei v = 2 m/s</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Abnahme-Checkliste</h3>
+  <ul class="check">
+    <li>Parameterskript läuft fehlerfrei, Hover-Drehzahl &lt; 70 % ω_max</li>
+    <li>Alle 8 Open-Loop-Tests (T1–T8) bestehen mit <code>assert</code>-Toleranzen</li>
+    <li>Variante 1 (Blöcke) und Variante 2 (MATLAB Function) liefern identische Trajektorien (Differenz &lt; 1e-9)</li>
+    <li>Fester Schritt (ode4, 1 ms) vs. ode45: keine sichtbare Abweichung über 30 s</li>
+    <li>Linearisierung: Eigenwerte entsprechen Erwartung (Integratorketten + Motorpole)</li>
+    <li>Rate-, Lage-, Höhen-, Positionsloop einzeln abgenommen (innen → außen)</li>
+    <li>Alle Closed-Loop-Szenarien inkl. Robustheits-Sweep bestanden</li>
+    <li>Testrunner läuft mit einem Befehl durch (<code>runtests('tests')</code>)</li>
+  </ul>
+
+  <h3>Sinnvolle Ausbaustufen danach</h3>
+  <ol>
+    <li><strong>Sensormodelle:</strong> IMU mit Rauschen + Bias (<code>Random Number</code> + <code>Constant</code>), Abtastung per <code>Zero-Order Hold</code> — plötzlich wird dein Regler realistisch schlechter.</li>
+    <li><strong>Quaternionen-Kinematik</strong> statt (4.3) — nur Block K2 tauschen.</li>
+    <li><strong>Diskreter Regler</strong> (250 Hz/1 kHz) + Codegenerierung → dein AURIX TC399 wartet schon. Der Schritt von diesem Modell zu „Flight Controller in C99 auf TriCore“ ist exakt dein MBD-Profil.</li>
+    <li><strong>3D-Visualisierung ohne Toolbox:</strong> MATLAB-Skript, das die geloggte Trajektorie mit <code>plot3</code> + <code>hgtransform</code> als animierten Copter abspielt.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ A -->
+<section id="sA">
+  <div class="sec-head"><span class="sec-num">A</span><h2>Abkürzungen &amp; Formelzeichen</h2></div>
+
+  <h3>A.1 — Abkürzungen</h3>
+  <table>
+    <thead><tr><th>Abk.</th><th>Bedeutung</th><th>Kontext im Dokument</th></tr></thead>
+    <tbody>
+      <tr><td class="m">DoF</td><td>Degrees of Freedom — Freiheitsgrade</td><td>3 Translationen + 3 Rotationen = 6 DoF; je 2 Zustände → 12 Zustände</td></tr>
+      <tr><td class="m">NED</td><td>North–East–Down</td><td>erdfestes Inertialsystem; z zeigt nach unten, Höhe = −z</td></tr>
+      <tr><td class="m">FRD</td><td>Front–Right–Down</td><td>Body-Frame-Konvention: x_b vorn, y_b rechts, z_b unten</td></tr>
+      <tr><td class="m">ZYX</td><td>Drehreihenfolge der Euler-Winkel</td><td>erst Yaw (z), dann Pitch (y), dann Roll (x) — Luftfahrt-Standard</td></tr>
+      <tr><td class="m">DGL</td><td>Differentialgleichung</td><td>die 12 Zustandsgleichungen aus Abschnitt 04</td></tr>
+      <tr><td class="m">PT1</td><td>Verzögerungsglied 1. Ordnung</td><td>Modell für Motor + ESC, Gl. (3.2)</td></tr>
+      <tr><td class="m">ESC</td><td>Electronic Speed Controller</td><td>Leistungselektronik, die den Motor auf Solldrehzahl regelt</td></tr>
+      <tr><td class="m">CCW / CW</td><td>counterclockwise / clockwise</td><td>Propeller-Drehrichtung in Draufsicht; bestimmt Yaw-Vorzeichen</td></tr>
+      <tr><td class="m">IC</td><td>Initial Condition — Anfangswert</td><td>Startwert eines Integrator-Blocks</td></tr>
+      <tr><td class="m">PID</td><td>Proportional–Integral–Differential-Regler</td><td>Basis-Simulink-Block; Kaskade in Abschnitt 08</td></tr>
+      <tr><td class="m">BW</td><td>Bandwidth — Bandbreite</td><td>Richtwert, wie schnell eine Regelschleife reagiert (Abb. 3)</td></tr>
+      <tr><td class="m">MiL</td><td>Model-in-the-Loop</td><td>Test des Reglers gegen das Streckenmodell in der Simulation</td></tr>
+      <tr><td class="m">IMU</td><td>Inertial Measurement Unit</td><td>Sensorpaket (Gyro + Beschleunigung); Ausbaustufe in 09</td></tr>
+      <tr><td class="m">RHS</td><td>Right-Hand Side — rechte Seite der DGL</td><td>Name der MATLAB Function <code>eom_rhs</code> in 05.4</td></tr>
+      <tr><td class="m">EOM</td><td>Equations of Motion — Bewegungsgleichungen</td><td>Gl. (4.1)–(4.4)</td></tr>
+      <tr><td class="m">ode45 / ode4</td><td>Runge-Kutta-Integrationsverfahren</td><td>Simulink-Solver: variabel (45) bzw. fester Schritt (4)</td></tr>
+      <tr><td class="m">CI/CD</td><td>Continuous Integration / Delivery</td><td>automatisierter Testrunner-Gedanke in Abschnitt 06</td></tr>
+    </tbody>
+  </table>
+
+  <h3>A.2 — Formelzeichen (global)</h3>
+  <table>
+    <thead><tr><th>Zeichen</th><th>Bedeutung</th><th>Einheit</th><th>Frame</th></tr></thead>
+    <tbody>
+      <tr><td class="m">x, y, z</td><td>Position des Schwerpunkts</td><td class="m">m</td><td>NED</td></tr>
+      <tr><td class="m">u, v, w</td><td>Translationsgeschwindigkeit</td><td class="m">m/s</td><td>Body</td></tr>
+      <tr><td class="m">φ, θ, ψ</td><td>Euler-Winkel: Roll, Pitch (Nick), Yaw (Gier)</td><td class="m">rad</td><td>—</td></tr>
+      <tr><td class="m">p, q, r</td><td>Drehraten um x_b, y_b, z_b</td><td class="m">rad/s</td><td>Body</td></tr>
+      <tr><td class="m">R</td><td>Rotationsmatrix Body→NED</td><td class="m">—</td><td>—</td></tr>
+      <tr><td class="m">W(Φ)</td><td>Matrix Body-Raten → Euler-Raten</td><td class="m">—</td><td>—</td></tr>
+      <tr><td class="m">m</td><td>Abflugmasse</td><td class="m">kg</td><td>—</td></tr>
+      <tr><td class="m">g</td><td>Erdbeschleunigung</td><td class="m">m/s²</td><td>NED (+z)</td></tr>
+      <tr><td class="m">I, I<sub>xx</sub>, I<sub>yy</sub>, I<sub>zz</sub></td><td>Trägheitsmatrix / Hauptträgheitsmomente</td><td class="m">kg·m²</td><td>Body</td></tr>
+      <tr><td class="m">l, d</td><td>Armlänge; effektiver Hebelarm d = l/√2</td><td class="m">m</td><td>Body</td></tr>
+      <tr><td class="m">ω<sub>i</sub>, ω<sub>cmd,i</sub></td><td>Ist- / Solldrehzahl von Motor i</td><td class="m">rad/s</td><td>—</td></tr>
+      <tr><td class="m">ω<sub>hover</sub></td><td>Schwebedrehzahl √(mg/4k<sub>T</sub>)</td><td class="m">rad/s</td><td>—</td></tr>
+      <tr><td class="m">T<sub>i</sub>, T</td><td>Einzelschub / Gesamtschub (entlang −z_b)</td><td class="m">N</td><td>Body</td></tr>
+      <tr><td class="m">Q<sub>i</sub></td><td>Reaktionsmoment von Rotor i</td><td class="m">Nm</td><td>Body</td></tr>
+      <tr><td class="m">k<sub>T</sub>, k<sub>Q</sub></td><td>Schub- / Momentenkoeffizient</td><td class="m">N·s², Nm·s²</td><td>—</td></tr>
+      <tr><td class="m">τ (Skalar)</td><td>Zeitkonstante Motor + ESC</td><td class="m">s</td><td>—</td></tr>
+      <tr><td class="m">τ = [τ<sub>x</sub>; τ<sub>y</sub>; τ<sub>z</sub>]</td><td>Momentenvektor (Roll, Pitch, Yaw)</td><td class="m">Nm</td><td>Body</td></tr>
+      <tr><td class="m">F<sub>b</sub>, M<sub>b</sub></td><td>resultierende Kraft / Moment auf den Körper</td><td class="m">N, Nm</td><td>Body</td></tr>
+      <tr><td class="m">C<sub>d</sub>, c<sub>x,y,z</sub></td><td>Widerstandsmatrix / -beiwerte</td><td class="m">N/(m/s)</td><td>Body</td></tr>
+      <tr><td class="m">MIX</td><td>4×4-Mixer-Matrix, Gl. (3.3)</td><td class="m">—</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Fett gedruckte Zeichen (z. B. <b>v</b>, <b>ω</b>, <b>R</b>) sind Vektoren bzw. Matrizen, kursive Normalschrift Skalare. Der Punkt über einem Zeichen (v̇) bedeutet Zeitableitung d/dt.</p>
+</section>
+
+<footer>
+  <span>QUAD-6DOF-01 · Basis-Simulink + Basis-MATLAB</span>
+  <span>Konvention: NED / Body FRD / Euler ZYX</span>
+  <span>Reihenfolge: MODELL → OPEN-LOOP-TEST → TRIMM → REGLER → CLOSED-LOOP-TEST</span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var svg = document.getElementById('quadsvg');
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 430, CX = W/2, CY = H/2 + 30, SC = 118;
+
+  // camera: fixed isometric-ish view
+  var caz = 32*Math.PI/180, cel = 24*Math.PI/180;
+  var cA = Math.cos(caz), sA = Math.sin(caz), cE = Math.cos(cel), sE = Math.sin(cel);
+
+  // NED point -> screen. Use up = -z.
+  function proj(p){
+    var x=p[0], y=p[1], up=-p[2];
+    var rx =  x*cA - y*sA;       // depth-ish
+    var ry =  x*sA + y*cA;       // right on screen
+    var sx = CX + ry*SC;
+    var sy = CY - (up*cE - rx*sE)*SC;
+    return [sx, sy];
+  }
+
+  function rotBodyToNed(phi,the,psi){
+    var cph=Math.cos(phi), sph=Math.sin(phi), cth=Math.cos(the), sth=Math.sin(the), cps=Math.cos(psi), sps=Math.sin(psi);
+    return [
+      [cth*cps, sph*sth*cps-cph*sps, cph*sth*cps+sph*sps],
+      [cth*sps, sph*sth*sps+cph*cps, cph*sth*sps-sph*cps],
+      [-sth,    sph*cth,             cph*cth]
+    ];
+  }
+  function mul(R,p){ return [
+    R[0][0]*p[0]+R[0][1]*p[1]+R[0][2]*p[2],
+    R[1][0]*p[0]+R[1][1]*p[1]+R[1][2]*p[2],
+    R[2][0]*p[0]+R[2][1]*p[1]+R[2][2]*p[2]]; }
+
+  function el(name, attrs, parent){
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (parent||svg).appendChild(e); return e;
+  }
+
+  // ---- static layers ----
+  var gGround = el('g',{}), gShadow = el('g',{}), gBody = el('g',{}), gLbl = el('g',{});
+
+  function drawGround(){
+    var n = 2, step = 0.5;
+    for (var i=-n; i<=n+0.001; i+=step){
+      var a=proj([i,-n,0]), b=proj([i,n,0]), c=proj([-n,i,0]), d=proj([n,i,0]);
+      el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#C9D6E4','stroke-width':1},gGround);
+      el('line',{x1:c[0],y1:c[1],x2:d[0],y2:d[1],stroke:'#C9D6E4','stroke-width':1},gGround);
+    }
+    // NED axes on ground
+    var o=proj([0,0,0]);
+    var xn=proj([1.4,0,0]), ye=proj([0,1.4,0]), zd=proj([0,0,0.45]);
+    el('line',{x1:o[0],y1:o[1],x2:xn[0],y2:xn[1],stroke:'#D6453D','stroke-width':1.6,'stroke-dasharray':'5 4'},gGround);
+    el('line',{x1:o[0],y1:o[1],x2:ye[0],y2:ye[1],stroke:'#2E8B57','stroke-width':1.6,'stroke-dasharray':'5 4'},gGround);
+    el('line',{x1:o[0],y1:o[1],x2:zd[0],y2:zd[1],stroke:'#2B6CB0','stroke-width':1.6,'stroke-dasharray':'5 4'},gGround);
+    var t1=el('text',{x:xn[0]+6,y:xn[1],fill:'#D6453D',style:'font:600 12px IBM Plex Mono,monospace'},gGround); t1.textContent='x (Nord)';
+    var t2=el('text',{x:ye[0]+6,y:ye[1],fill:'#2E8B57',style:'font:600 12px IBM Plex Mono,monospace'},gGround); t2.textContent='y (Ost)';
+    var t3=el('text',{x:zd[0]+6,y:zd[1]+4,fill:'#2B6CB0',style:'font:600 12px IBM Plex Mono,monospace'},gGround); t3.textContent='z (unten)';
+    var t4=el('text',{x:10,y:20,fill:'#4A5A68',style:'font:600 11px IBM Plex Mono,monospace'},gGround); t4.textContent='NED-INERTIALSYSTEM (gestrichelt) · BODY-DREIBEIN (durchgezogen)';
+  }
+  drawGround();
+
+  // body geometry (body frame: x fwd, y right, z down), c = arm reach
+  var c = 0.62;
+  var motorsB = [[c,c,0],[-c,c,0],[-c,-c,0],[c,-c,0]]; // M1 FR, M2 BR, M3 BL, M4 FL
+  var axesB = {x:[1.05,0,0], y:[0,1.05,0], z:[0,0,0.6]};
+
+  // dynamic elements
+  var shadow = el('polygon',{fill:'#16212B','fill-opacity':0.10},gShadow);
+  var armLines = [el('line',{stroke:'#16212B','stroke-width':5,'stroke-linecap':'round'},gBody),
+                  el('line',{stroke:'#16212B','stroke-width':5,'stroke-linecap':'round'},gBody)];
+  var hub = el('circle',{r:9,fill:'#fff',stroke:'#16212B','stroke-width':2.5},gBody);
+  var nose = el('circle',{r:4,fill:'#E8590C'},gBody);
+  var rotors=[], rotorTx=[];
+  for (var i=0;i<4;i++){
+    rotors.push(el('ellipse',{fill:'#EAF1F9','fill-opacity':0.9,stroke:'#1D5FBF','stroke-width':2},gBody));
+    var tx=el('text',{fill:'#123E7C',style:'font:600 11px IBM Plex Mono,monospace','text-anchor':'middle'},gLbl);
+    tx.textContent='M'+(i+1); rotorTx.push(tx);
+  }
+  var axLines={}, axTx={};
+  [['x','#D6453D','x_b'],['y','#2E8B57','y_b'],['z','#2B6CB0','z_b']].forEach(function(a){
+    axLines[a[0]] = el('line',{stroke:a[1],'stroke-width':2.6},gBody);
+    axTx[a[0]] = el('text',{fill:a[1],style:'font:700 13px IBM Plex Mono,monospace'},gLbl);
+    axTx[a[0]].textContent=a[2];
+  });
+
+  var S = {phi:0,the:0,psi:0,tx:0,ty:0,tz:0.8};
+
+  function fmt(n){ return (n<0?'−':'\u00A0') + Math.abs(n).toFixed(2); }
+
+  function render(){
+    var phi=S.phi*Math.PI/180, the=S.the*Math.PI/180, psi=S.psi*Math.PI/180;
+    var R = rotBodyToNed(phi,the,psi);
+    var t = [S.tx, S.ty, -S.tz]; // z = -Höhe
+
+    function world(pb){ var w=mul(R,pb); return [w[0]+t[0], w[1]+t[1], w[2]+t[2]]; }
+    var mw = motorsB.map(world), mp = mw.map(proj);
+
+    // shadow on ground
+    var sp = mw.map(function(w){ return proj([w[0],w[1],0]); });
+    shadow.setAttribute('points', sp.map(function(p){return p.join(',');}).join(' '));
+
+    armLines[0].setAttribute('x1',mp[0][0]); armLines[0].setAttribute('y1',mp[0][1]);
+    armLines[0].setAttribute('x2',mp[2][0]); armLines[0].setAttribute('y2',mp[2][1]);
+    armLines[1].setAttribute('x1',mp[1][0]); armLines[1].setAttribute('y1',mp[1][1]);
+    armLines[1].setAttribute('x2',mp[3][0]); armLines[1].setAttribute('y2',mp[3][1]);
+
+    var hp = proj(world([0,0,0]));
+    hub.setAttribute('cx',hp[0]); hub.setAttribute('cy',hp[1]);
+    var np = proj(world([0.28,0,-0.05]));
+    nose.setAttribute('cx',np[0]); nose.setAttribute('cy',np[1]);
+
+    // rotor discs: ellipse squashed by tilt (approx via projected minor axis)
+    for (var i=0;i<4;i++){
+      rotors[i].setAttribute('cx',mp[i][0]); rotors[i].setAttribute('cy',mp[i][1]);
+      var e1=proj(world([motorsB[i][0]+0.22,motorsB[i][1],motorsB[i][2]]));
+      var e2=proj(world([motorsB[i][0],motorsB[i][1]+0.22,motorsB[i][2]]));
+      var rx=Math.hypot(e1[0]-mp[i][0],e1[1]-mp[i][1]);
+      var ry=Math.hypot(e2[0]-mp[i][0],e2[1]-mp[i][1]);
+      rotors[i].setAttribute('rx',Math.max(rx,ry)); rotors[i].setAttribute('ry',Math.max(6,Math.min(rx,ry)));
+      rotorTx[i].setAttribute('x',mp[i][0]); rotorTx[i].setAttribute('y',mp[i][1]-14);
+    }
+
+    // body axes
+    for (var k in axesB){
+      var pe = proj(world(axesB[k]));
+      axLines[k].setAttribute('x1',hp[0]); axLines[k].setAttribute('y1',hp[1]);
+      axLines[k].setAttribute('x2',pe[0]); axLines[k].setAttribute('y2',pe[1]);
+      axTx[k].setAttribute('x',pe[0]+5); axTx[k].setAttribute('y',pe[1]-3);
+    }
+
+    // rotation matrix readout
+    var rm='';
+    for (var r0=0;r0<3;r0++){ rm += (r0===0?'⎡':(r0===1?'⎢':'⎣'))+' '+fmt(R[r0][0])+' '+fmt(R[r0][1])+' '+fmt(R[r0][2])+' '+(r0===0?'⎤':(r0===1?'⎥':'⎦'))+(r0<2?'\n':''); }
+    document.getElementById('rmat').textContent = rm;
+
+    // mixer illustration: command u=[T_h; k*phi; k*the; k*psi] -> w_i^2 via inverse mixer signs
+    var Th=1.0, kk=0.011;
+    var u=[Th, kk*S.phi, kk*S.the, kk*S.psi];
+    // inverse of normalized X-mixer (signs per Abb.2 convention)
+    var w2=[
+      u[0]/4 - u[1]/4 + u[2]/4 + u[3]/4,  // M1 (CCW)
+      u[0]/4 - u[1]/4 - u[2]/4 - u[3]/4,  // M2 (CW)
+      u[0]/4 + u[1]/4 - u[2]/4 + u[3]/4,  // M3 (CCW)
+      u[0]/4 + u[1]/4 + u[2]/4 - u[3]/4   // M4 (CW)
+    ];
+    for (var j=0;j<4;j++){
+      var val=Math.max(0,w2[j]);
+      var pct=Math.min(100, Math.sqrt(val/0.25)*50);
+      var f=document.getElementById('f'+(j+1));
+      f.style.height=pct+'%';
+      f.className = 'fill' + (Math.abs(pct-50)>6 ? ' hot' : '');
+      document.getElementById('v'+(j+1)).textContent = Math.round(pct*2)+'%';
+    }
+  }
+
+  var ids=[['rphi','phi','ophi','°',0],['rthe','the','othe','°',0],['rpsi','psi','opsi','°',0],
+           ['tx','tx','otx',' m',1],['ty','ty','oty',' m',1],['tz','tz','otz',' m',1]];
+  ids.forEach(function(d){
+    var inp=document.getElementById(d[0]);
+    inp.addEventListener('input',function(){
+      S[d[1]]=parseFloat(inp.value);
+      document.getElementById(d[2]).textContent = parseFloat(inp.value).toFixed(d[4])+d[3];
+      render();
+    });
+  });
+  document.getElementById('resetBtn').addEventListener('click',function(){
+    S={phi:0,the:0,psi:0,tx:0,ty:0,tz:0.8};
+    ids.forEach(function(d){
+      var v=(d[0]==='tz')?0.8:0;
+      document.getElementById(d[0]).value=v;
+      document.getElementById(d[2]).textContent=v.toFixed(d[4])+d[3];
+    });
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
