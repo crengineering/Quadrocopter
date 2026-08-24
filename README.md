@@ -22,7 +22,7 @@ same idea.
 
 The three documents under `doc/` are the knowledge base for this project. They
 were written while building it and carry the derivations, the design decisions
-and the failures behind them — the README only summarises.
+and the failures behind them.
 
 | Document | Contents |
 |---|---|
@@ -64,6 +64,14 @@ Only when the inner loop is distinctly faster may the outer loop treat it as
 ideal (unity gain) during design. Otherwise the outer loop commands setpoints the
 inner one has not yet reached, and the two wind each other up. The motors, with a
 pole at −20 rad/s, are what permits the fast inner loop.
+
+[![Top level of quad_model_control.slx: setpoint generation on the left, the Controller subsystem holding the four cascade stages, and the plant built from actuators, kraefte_momente, dynamik_6DoF and kinematik, with state feedback closing each loop](doc/img/quad_model_control.png)](doc/img/quad_model_control.png)
+
+*Top level of `quad_model_control.slx`. Setpoints on the left, the `Controller`
+subsystem holding the four cascade stages, and the plant as `actuators` →
+`kraefte_momente` → `dynamik_6DoF` → `kinematik`. The three feedback paths at the
+bottom are the rate, attitude and position loops. Click to open full size;
+annotated in German.*
 
 ### Loop dimensioning
 
@@ -206,8 +214,8 @@ The MATLAB side here only speaks it: `replay_udp.m` sends the input vectors and
 collects the responses together with the execution-time tick value the target
 returns.
 
-Per-group tolerances live in `pil/replay_compare.m` and are maintained there,
-ranging from 1e-5 Nm on the commanded torques to 1e-2 rad/s on the motor speeds.
+Per-group tolerances live in `pil/replay_compare.m`, ranging from 1e-5 Nm on the
+commanded torques to 1e-2 rad/s on the motor speeds.
 They can be overridden per run through `run_pil`.
 
 One detail that saved real work: Simulink logs the integrator state as `I[k-1]`
