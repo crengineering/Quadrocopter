@@ -30,8 +30,7 @@ and the failures behind them.
 | **[Trimmung, Linearisierung & Reglerentwurf](doc/trimm-regler.html)** | The design reference: how each of the three loops is dimensioned, the resulting gains, the conversion from commanded acceleration to commanded attitude, and the failure symptoms of getting it wrong |
 | **[Vom Modell aufs Target](doc/vom-modell-aufs-target.html)** | The path onto the hardware: MiL suite, s- to z-domain, the C code, wrapping it back into the model, and the vector replay on the TC399 |
 
-They are self-contained HTML — open them in any browser, no MATLAB required, and
-written in German.
+They are self-contained HTML — open them in any browser, no MATLAB required.
 
 *On authorship: these documents were written with Claude Code from the model, the
 design decisions and the measured results of this project, then reviewed and
@@ -70,8 +69,7 @@ pole at −20 rad/s, are what permits the fast inner loop.
 *Top level of `quad_model_control.slx`. Setpoints on the left, the `Controller`
 subsystem holding the four cascade stages, and the plant as `actuators` →
 `kraefte_momente` → `dynamik_6DoF` → `kinematik`. The three feedback paths at the
-bottom are the rate, attitude and position loops. Click to open full size;
-annotated in German.*
+bottom are the rate, attitude and position loops. Click to open full size.*
 
 ### Loop dimensioning
 
