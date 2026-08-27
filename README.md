@@ -296,7 +296,14 @@ doc/                      the three reference documents (HTML)
 - [ ] **Commit a reference run** — a stored PiL result as a regression baseline
 - [ ] **CI** — run the MiL suite automatically; today it is manual only
 - [ ] **Mechanics** — frame, motor KV and propellers are coupled and not yet
-      fixed; the constraint is the 100 × 160 mm board footprint
+      fixed; the constraint is the 100 × 160 mm board footprint.
+      The propeller reaches the flight firmware through exactly one path
+      (blade-pass frequency → required sample rate); the arithmetic, the
+      decision procedure and what does *not* change are written down in
+      [`doc/PROP_TO_FIRMWARE.md`](doc/PROP_TO_FIRMWARE.md). Note that
+      `quad_params.m` and `doc/projektplan.md` currently describe two
+      different aircraft (122 Hz vs 83 Hz hover fundamental) — the propeller
+      choice is what picks between them
 
 Test stages up to flight, each with its own safety concept: **0** motors on the
 rig without propellers (DShot, arming, kill) → **1** ball-joint rig (rate +
