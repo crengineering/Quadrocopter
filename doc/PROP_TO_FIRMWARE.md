@@ -1,5 +1,7 @@
 # Propeller choice → firmware sample rate
 
+**ASPICE:** SYS.3 supporting analysis — propeller → sample-rate path · realizes SYS-MEC-002, SYS-TIM-001 · process: QuadSE/requirements/README.md
+
 **Open item.** The propeller is not yet fixed (`README.md`, *Mechanics*). This
 note records the one place that choice reaches into the flight firmware, so the
 path is already clear when the decision is made.
