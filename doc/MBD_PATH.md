@@ -1,6 +1,6 @@
 # MBD Path — Sensor Models & State Estimator (Simulink)
 
-**ASPICE:** SWE.2 — software architecture, MDL domain (Simulink estimator/sensor path); §3 is the SYS-IF-001 contract · realizes SYS-VER-001, SYS-IF-001/002 · process: QuadSE/requirements/README.md
+**ASPICE:** SWE.2 — software architecture, MDL domain (Simulink estimator/sensor path); §3 is the SYS2-IF-001 contract · realizes SYS2-VER-001, SYS2-IF-001/002 · process: QuadSE/requirements/README.md
 
 > **Standalone work package.** This document is self-contained so it can be
 > executed independently (e.g. in a parallel Claude Chat session) while the

@@ -1,13 +1,13 @@
 # mech/ — mechanical design (frame, mounts)
 
-**ASPICE:** MEE — mechanical design, quadrocopter frame · realizes SYS-MEC-001
-(printability, board footprint, resonance — parent R-011) and SYS-MEC-007
+**ASPICE:** MEE — mechanical design, quadrocopter frame · realizes SYS2-MEC-001
+(printability, board footprint, resonance — parent SYS1-011) and SYS2-MEC-007
 (X2D build-volume fit, multi-part split, arm-printable-lying-down — parents
-R-011, R-012) · process: QuadSE/requirements/README.md
+SYS1-011, SYS1-012) · process: QuadSE/requirements/README.md
 
-SYS-MEC-002 (thrust/weight) no longer belongs here — narrowed 2026-08-30 to
-the drive's own condition, owned by the R-012 dispatch. This directory feeds
-it and SYS-MEC-003 a number (frame mass, from Fusion mass properties) but
+SYS2-MEC-002 (thrust/weight) no longer belongs here — narrowed 2026-08-30 to
+the drive's own condition, owned by the SYS1-012 dispatch. This directory feeds
+it and SYS2-MEC-003 a number (frame mass, from Fusion mass properties) but
 realizes neither.
 
 Owned by the `flight-mech` agent (Fusion via MCP) together with Chris, who
@@ -32,9 +32,9 @@ a dimension that is not in it with a source does not exist.
 ## Standing constraints
 
 See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
-(SYS-MEC-001/007) and `Quadrocopter/doc/projektplan.md` §7.
+(SYS2-MEC-001/007) and `Quadrocopter/doc/projektplan.md` §7.
 
-**Decided geometry (gate 1, R-012, approved 2026-08-30 — do not re-open here):**
+**Decided geometry (gate 1, SYS1-012, approved 2026-08-30 — do not re-open here):**
 
 - Frame class **F450**, arm length `l` = **225 mm** centre-to-motor
 - Propeller **Ø 254 mm** (10×4,5″), 2 blades — HQProp MR1045
@@ -118,16 +118,16 @@ See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
 
 **Still open, not this directory's call:**
 
-- **Material** (SYS-MEC-001) — PETG favoured (60 °C glass transition beats
+- **Material** (SYS2-MEC-001) — PETG favoured (60 °C glass transition beats
   PLA), CFK-tube arm + printed centre hybrid an option; Chris decides.
   Drives frame mass, stiffness, and where resonance sits relative to the
   ~83–91 Hz hover fundamental.
 - Frame mass **~400 g planning value** (`projektplan` §7) — the single
-  largest unsourced number in the AUM budget (see `dispatch/R-012.md` §4).
+  largest unsourced number in the AUM budget (see `dispatch/SYS1-012.md` §4).
   Replaced by a real number once material + wall/plate thickness are fixed
   and Fusion's mass properties are read over the MCP.
 - Plate thickness, arm wall thickness — depend on the material decision above.
 
 Empty until the first **approved frame design revision** — gate 1
-(component selection, R-012) passed 2026-08-30; gate 2 (this directory's
+(component selection, SYS1-012) passed 2026-08-30; gate 2 (this directory's
 design) is what populates it.

@@ -1,9 +1,9 @@
 function results = test_fit_motor_coeffs
 %TEST_FIT_MOTOR_COEFFS  Validate FIT_MOTOR_COEFFS against a synthetic sweep
-%   with a planted, known answer (SWR-MDL-003 unit-level verification;
-%   dispatch/R-012.md §8 acceptance for this task: "script runs on a
+%   with a planted, known answer (SWE1-MDL-003 unit-level verification;
+%   dispatch/SYS1-012.md §8 acceptance for this task: "script runs on a
 %   synthetic sweep"). No bench data exists yet -- this is the only
-%   evidence available before SYS-ACT-001 unblocks the real rig.
+%   evidence available before SYS2-ACT-001 unblocks the real rig.
 %
 %   Follows the run_all_tests.m PASS/FAIL/SKIP pattern used in tests/.
 
@@ -60,7 +60,7 @@ end
 
 function case_low_noise_tight_tol
 % Tighter noise than the nominal case: this is what sets the credible
-% 2%%-recovery bar cited in SWR-MDL-003's unit-verification criterion.
+% 2%%-recovery bar cited in SWE1-MDL-003's unit-verification criterion.
 [sweep, truth] = synth_motor_sweep('NoiseSeed', 7, ...
     'ThrustNoise_g', 0.1, 'CurrentNoise_A', 0.03, 'ErpmNoise_frac', 0.002);
 r = fit_motor_coeffs(sweep, 'KV', truth.KV, 'PolePairs', truth.PolePairs);

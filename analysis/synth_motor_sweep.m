@@ -1,8 +1,8 @@
 function [sweep, truth, stepResponse] = synth_motor_sweep(varargin)
 %SYNTH_MOTOR_SWEEP  Generate a synthetic bench thrust-rig sweep with known
 %   ground-truth kT/kQ/tau, for validating FIT_MOTOR_COEFFS against a
-%   planted answer before any real bench data exists (SWR-MDL-003,
-%   dispatch/R-012.md §8 acceptance: "script runs on a synthetic sweep").
+%   planted answer before any real bench data exists (SWE1-MDL-003,
+%   dispatch/SYS1-012.md §8 acceptance: "script runs on a synthetic sweep").
 %
 %   [sweep, truth, stepResponse] = SYNTH_MOTOR_SWEEP(...) returns:
 %     sweep        : table with columns throttle, erpm, thrust_g, vbat_V,

@@ -6,8 +6,8 @@ function result = fit_motor_coeffs(sweep, varargin)
 %   bench sweep: throttle held at ~10 steady-state steps from spin-up to the
 %   current limit. Also returns w_max (top of the accepted sweep) and,
 %   if a step-response transient is supplied, the motor+ESC time constant
-%   tau. Design for SWR-MDL-003 (parent SYS-MEC-004, R-007); see
-%   QuadSE/requirements/SWE1_SWR.md and dispatch/R-012.md §6.
+%   tau. Design for SWE1-MDL-003 (parent SYS2-MEC-004, SYS1-007); see
+%   QuadSE/requirements/SWE1_SWR.md and dispatch/SYS1-012.md §6.
 %
 %   INPUT
 %     sweep : table or struct array, one row per held throttle step, with
@@ -34,7 +34,7 @@ function result = fit_motor_coeffs(sweep, varargin)
 %                                  for the tau fit. Leave empty to skip it
 %                                  (result.tau = NaN, not a guessed value).
 %     'MinSteps'     (default 8)   minimum accepted rows for adoption
-%                                  (SWR-MDL-003 acceptance).
+%                                  (SWE1-MDL-003 acceptance).
 %     'MinR2'        (default 0.98) minimum kT R^2 for adoption.
 %     'MaxRelResidual' (default 0.05) maximum kT residual RMS, normalized
 %                                  by mean thrust, for adoption. R^2 alone
@@ -58,10 +58,10 @@ function result = fit_motor_coeffs(sweep, varargin)
 %     w_max                        [rad/s], top of the accepted sweep
 %     n_used, n_rejected           row counts after the NaN/validity guard
 %     monotonic                    logical, thrust non-decreasing in throttle
-%     accepted                     logical -- SWR-MDL-003 acceptance verdict
+%     accepted                     logical -- SWE1-MDL-003 acceptance verdict
 %     reason                       string explaining a rejection (or "ok")
 %
-%   ACCEPTANCE (SWR-MDL-003): a sweep is adopted into quad_params.m only if,
+%   ACCEPTANCE (SWE1-MDL-003): a sweep is adopted into quad_params.m only if,
 %   after the guard, >= MinSteps rows remain, thrust is monotonic (within a
 %   small noise tolerance) in throttle, and kT_R2 >= MinR2. Anything short
 %   of that comes back with accepted = false and a reason -- NaN and outlier
@@ -186,7 +186,7 @@ if ~isempty(opt.StepResponse)
     end
 end
 
-% ---- acceptance verdict (SWR-MDL-003) ----------------------------------
+% ---- acceptance verdict (SWE1-MDL-003) ----------------------------------
 if ~monotonic
     result.reason = 'thrust not monotonic in throttle (beyond noise tolerance)';
     return
