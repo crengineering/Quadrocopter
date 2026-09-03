@@ -159,8 +159,12 @@ SWE1-MDL-003, dispatch/SYS1-012.md §6 for the rig and fit method):
 1. **Fit `kT`, `kQ`, `tau`, `w_max`** from the bench sweep with the
    coefficient-fit script (SWE1-MDL-003) and put them in `quad_params.m:8-11`.
    Set the real `m` at `:2` from the SYS2-MEC-003 weigh-in once the frame and
-   breakout PCB are no longer estimates. See §5 (quad_params.m update path)
-   for exactly how, with what provenance.
+   breakout PCB are no longer estimates. A failed `tau` fit on a supplied
+   step transient (degenerate step-down, or too few samples in the fit
+   window) rejects the whole sweep (`fit_motor_coeffs.m`'s
+   `accepted = false`, `reason = 'tauFitFailed:...'`) — it does not go into
+   `quad_params.m` with `tau` quietly missing. See §5 (quad_params.m update
+   path) for exactly how, with what provenance.
 2. **Re-run the arithmetic:**
    ```
    w_hover    = sqrt(m*g/(4*kT))          [rad/s]
@@ -193,6 +197,11 @@ SWE1-MDL-003, dispatch/SYS1-012.md §6 for the rig and fit method):
 | `:10` | `tau` | same sweep, throttle-step response | same evidence row |
 | `:11` | `w_max` | top of the same sweep (measured, not KV × V_max) | same evidence row |
 | `:57` | hover comment | recomputed from the new `m`, `kT` at the same time | falls out of the arithmetic in §4 step 2 |
+
+The values written to `quad_params.m:8-11` are read from `fit_motor_coeffs.m`'s
+primary result fields (`kT`, `kQ`, `tau`, `w_max`) with `accepted == true`
+only — never from `result.rejected_fit`, which exists purely for diagnosing
+*why* a sweep was rejected and is never a source for this file.
 
 Every one of `:2,8,9,10,11` is a **proposal, not a direct edit** — per
 CLAUDE.md's control-law/parameter rule, changes to `quad_params.m` go to the

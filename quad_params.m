@@ -1,4 +1,7 @@
-% ---- Quadrocopter-Parameter (Beispiel: 450er-Klasse) ----
+% ---- Quadrocopter-Parameter (F450, Prop Ø 254 mm — SYS1-012) ----
+% PLATZHALTER: kT, kQ, tau, w_max und m sind NICHT für den Projekt-Propeller
+% (Ø 254 mm, der einzige — Entscheidung 2026-09-03) gemessen. Sie werden durch
+% den SWE1-MDL-003-Fit aus dem Bench-Sweep ersetzt (doc/PROP_TO_FIRMWARE.md §5).
 m    = 1.20;                % kg   Abflugmasse
 g    = 9.81;                % m/s^2
 l    = 0.225;               % m    Armlänge Zentrum->Rotor

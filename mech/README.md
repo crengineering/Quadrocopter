@@ -31,8 +31,8 @@ a dimension that is not in it with a source does not exist.
 
 ## Standing constraints
 
-See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
-(SYS2-MEC-001/007) and `Quadrocopter/doc/projektplan.md` §7.
+See `QuadSE/requirements/SYS3/SYS3-005 — Frame.md`, `QuadSE/requirements/SYS2/`
+(SYS2-MEC-001 / -007, one file per item) and `Quadrocopter/doc/projektplan.md` §7.
 
 **Decided geometry (gate 1, SYS1-012, approved 2026-08-30 — do not re-open here):**
 
@@ -67,7 +67,7 @@ See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
     (near-X = 7,298 mm → 85,536 mm span, vs near-X = 7,812 mm → 85,022 mm
     span, the latter matching Chris's measurement far better) and neither
     is asserted as correct. Full derivation and both candidates:
-    `params_r01` draft (gate-2 report).
+    `params_r01.json`.
   - **Design response: a semi-kinematic four-point mount, not a fourth
     reading attempt.** Chris's decision — a 3D-printed plate needs
     clearance for shrinkage/warp regardless of the drawing ambiguity, so
@@ -102,7 +102,7 @@ See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
     hole is under 4 mm, hence M3", **and** "the X-axis printed-chain
     reading is itself ambiguous"; it never overrides an unambiguous
     printed dimension, and on X there isn't one. Full source hierarchy:
-    `params_r01` draft.
+    `params_r01.json` → `board_mount`.
 - **The AURIX breakout PCB** (buy list §2.2 — the 2×-Samtec-connector board
   carrying the sensor breakouts) is itself an "extension board" in exactly
   the sense §7.4 means: it mounts on the TriBoard over those connectors, so
@@ -113,21 +113,40 @@ See `QuadSE/architecture/SYS3_SYSARC.md` (E5), `QuadSE/requirements/SYS2_SYS.md`
 - Bambu Lab X2D build volume **256×256×260 mm** ⇒ frame is necessarily
   **centre plate + 4 separate arms** (450 mm diagonal does not fit in one
   piece); a 225 mm arm printed lying down leaves **31 mm** of bed margin —
-  printable, but with almost no rotational freedom left over (see gate-2
-  report, `params_r01` proposal)
+  printable, but with almost no rotational freedom left over (see
+  `params_r01.json` → `checks`)
 
-**Still open, not this directory's call:**
+**Decided since (2026-08-30, gate 2 of SYS1-012 / SYS1-011 — commit `1cb5c6f` in QuadSE):**
 
-- **Material** (SYS2-MEC-001) — PETG favoured (60 °C glass transition beats
-  PLA), CFK-tube arm + printed centre hybrid an option; Chris decides.
-  Drives frame mass, stiffness, and where resonance sits relative to the
-  ~83–91 Hz hover fundamental.
+- **Material** (SYS2-MEC-001): centre plate in **Bambu Lab PETG Basic**
+  (Chris's spool, 2026-09-03). Datasheet:
+  `QuadSE/procurement/datasheets/material-bambu-petg-basic.md` — **Tg 69 °C,
+  HDT 68 °C @ 1,8 MPa, density 1,25 g/cm³, E 2780 MPa in-plane**; layer
+  adhesion is the weak direction (Z impact 31 % of X-Y), so boss and
+  arm-clamp loads run in-plane. ASA Aero rejected (foaming filament trades
+  density for stiffness and layer adhesion).
+- **Construction**: hybrid — printed PETG centre plate + **square CFK tube
+  arms 10×10 mm**, wall 0,75 mm (Lindinger P: 9810632, `einkaufsliste` §6a).
+  Analytical Euler-Bernoulli modal check: first arm bending mode **46 Hz**,
+  below the 86–150 Hz 1P band (excitation sweeps with throttle, so no sane
+  arm clears *above* it; round 16/14 would have sat on the hover tone at
+  84 Hz). Square over round for anti-rotation of the motor tilt. Arms
+  40 g for four vs 257 g printed.
+- All dimensions of record: **`params_r01.json`** (approved by Chris
+  2026-09-03, gate 2) — every value with status and source; unresolved values carry
+  their candidates, not a pick.
+
+**Still open (listed in `params_r01.json` → `open`):**
+
 - Frame mass **~400 g planning value** (`projektplan` §7) — the single
-  largest unsourced number in the AUM budget (see `dispatch/SYS1-012.md` §4).
-  Replaced by a real number once material + wall/plate thickness are fixed
-  and Fusion's mass properties are read over the MCP.
-- Plate thickness, arm wall thickness — depend on the material decision above.
+  largest unsourced number in the AUM budget (see the SYS1-012 dispatch
+  note §4). Replaced by a real number once plate thickness is fixed and
+  Fusion's mass properties are read over the MCP.
+- Plate thickness, arm-to-plate joint (clamp / screw / bond), which of the
+  four TriBoard holes is datum / slot / oversized — the Fusion shape pass,
+  after `params_r01` is approved.
+- Motor bolt pattern and shaft protrusion — measured on arrival.
 
-Empty until the first **approved frame design revision** — gate 1
-(component selection, SYS1-012) passed 2026-08-30; gate 2 (this directory's
-design) is what populates it.
+STEP / 3MF snapshots appear with the first **approved frame design
+revision** — gate 1 (component selection, SYS1-012) passed 2026-08-30;
+gate 2 (this directory's design) is what populates them.

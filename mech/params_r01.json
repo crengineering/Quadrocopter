@@ -1,0 +1,569 @@
+{
+  "revision": "r01",
+  "state": "approved 2026-09-03 (gate 2, Chris) — dimensional SSoT for revision r01; unresolved entries stay unresolved by design",
+  "date": "2026-09-03",
+  "units_policy": "mm, g, Hz, degrees; metric only",
+  "note": "Reconstructed 2026-09-03 from mech/README.md, procurement/datasheets/board-triboard-tc3x9-mechanical.md, procurement/datasheets/motor-sunnysky-x2216-iii-v3-880kv.md, procurement/einkaufsliste.md, dispatch/SYS1-012 — Dispatch.md, requirements/SYS2/SYS2-MEC-001 and -007, and commit 1cb5c6f. No value in this file was invented; see 'open' for everything not settled.",
+  "groups": {
+    "geometry": {
+      "arm_length_l": {
+        "value": 225,
+        "unit": "mm",
+        "status": "decided",
+        "source": "user decision 2026-08-30, dispatch SYS1-012 §3/§5; SYS2-MEC-007"
+      },
+      "frame_class": {
+        "value": "F450",
+        "status": "decided",
+        "source": "user decision 2026-08-30, mech/README.md"
+      },
+      "board_footprint_X": {
+        "value": 100,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "board-triboard-tc3x9-mechanical.md (TriBoard TC3X9, EURO board outline)"
+      },
+      "board_footprint_Y": {
+        "value": 160,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "board-triboard-tc3x9-mechanical.md (TriBoard TC3X9, EURO board outline)"
+      }
+    },
+    "propeller": {
+      "prop_diameter": {
+        "value": 254,
+        "unit": "mm",
+        "status": "decided",
+        "source": "dispatch SYS1-012 (10×4.5\" HQProp MR1045 / GEMFAN MR1045); einkaufsliste.md §3"
+      },
+      "prop_blade_count": {
+        "value": 2,
+        "unit": "count",
+        "status": "decided",
+        "source": "einkaufsliste.md §3, HQProp Multi-Rotor 10×4,5\""
+      },
+      "prop_hub_diameter": {
+        "value": 16,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "einkaufsliste.md §3, HQProp spec 'Nabe Ø 16 mm'"
+      },
+      "prop_adapter_rings": {
+        "value": [
+          6,
+          5,
+          4,
+          3
+        ],
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "einkaufsliste.md §3, HQProp 'Adapterringe 6/5/4/3 mm'"
+      },
+      "prop_mass_each": {
+        "value": 11.59,
+        "unit": "g",
+        "status": "datasheet",
+        "source": "einkaufsliste.md §3, HQProp spec sheet"
+      },
+      "prop_radius_derived": {
+        "value": 127,
+        "unit": "mm",
+        "status": "derived",
+        "source": "prop_diameter / 2"
+      }
+    },
+    "motor_mount": {
+      "motor_model": {
+        "value": "SunnySky X2216-III V3 KV880, long shaft",
+        "status": "decided",
+        "source": "dispatch SYS1-012 §4b/§4e; einkaufsliste.md §3"
+      },
+      "motor_shaft_diameter": {
+        "value": 3.175,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "motor-sunnysky-x2216-iii-v3-880kv.md, Specification (V3)"
+      },
+      "motor_stator": {
+        "value": "22×16 mm",
+        "status": "datasheet",
+        "source": "motor-sunnysky-x2216-iii-v3-880kv.md"
+      },
+      "motor_body_length": {
+        "value": 34,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "motor-sunnysky-x2216-iii-v3-880kv.md"
+      },
+      "motor_mass_each": {
+        "value": 67.5,
+        "unit": "g",
+        "status": "datasheet",
+        "source": "motor-sunnysky-x2216-iii-v3-880kv.md, V3 spec ('use V3 numbers', supersedes the 72 g II-series figure in dispatch §4)"
+      },
+      "motor_to_board_corner_clearance": {
+        "value": 134.6,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "board-triboard-tc3x9-mechanical.md, 'Other mechanically relevant facts'"
+      }
+    },
+    "board_mount": {
+      "hole_diameter_finished": {
+        "value": 3.8,
+        "unit": "mm",
+        "status": "measured",
+        "source": "Chris, Geodreieck, ±0.5 mm resolution, 2026-08-30 — board-triboard-tc3x9-mechanical.md"
+      },
+      "hole_diameter_drill_nominal": {
+        "value": 4.0,
+        "unit": "mm",
+        "status": "datasheet",
+        "source": "infineon-tc3x9-usermanual-en.pdf §7.4 Fig. 7-11, callout '4x4mm(157.48mil)' — this is the drill size, not the finished ID; design bosses against 3.8 mm"
+      },
+      "hole_thread": {
+        "value": "M3",
+        "status": "decided",
+        "source": "measured 3.8 mm ID (an M4 screw will not pass); confirms einkaufsliste.md §2.2 'Distanzbolzen Nylon M3, 10 mm'"
+      },
+      "hole_near_Y_shared": {
+        "value": 3.581,
+        "unit": "mm",
+        "status": "decided",
+        "source": "Fig. 7-11 printed dimension; length axis confirmed by hand measurement within ±0.5 mm, board-triboard-tc3x9-mechanical.md"
+      },
+      "hole_far_Y_A": {
+        "value": 129.261,
+        "unit": "mm",
+        "status": "decided",
+        "source": "Fig. 7-11 printed dimension, confirmed — board-triboard-tc3x9-mechanical.md"
+      },
+      "hole_far_Y_B": {
+        "value": 127.167,
+        "unit": "mm",
+        "status": "decided",
+        "source": "Fig. 7-11 printed dimension, confirmed — board-triboard-tc3x9-mechanical.md"
+      },
+      "hole_far_Y_offset_printed": {
+        "value": 2.094,
+        "unit": "mm",
+        "status": "derived",
+        "source": "129.261 − 127.167, Fig. 7-11"
+      },
+      "hole_far_Y_offset_measured": {
+        "value": 2.5,
+        "unit": "mm",
+        "status": "measured",
+        "source": "Chris, Geodreieck, ±0.5 mm resolution, 2026-08-30 — confirms the offset is real board geometry, not a rectangle"
+      },
+      "length_span_A_measured": {
+        "value": 125.5,
+        "unit": "mm",
+        "status": "measured",
+        "source": "Chris, Geodreieck, ±0.5 mm, 2026-08-30"
+      },
+      "length_span_A_derived": {
+        "value": 125.68,
+        "unit": "mm",
+        "status": "derived",
+        "source": "129.261 − 3.581, Fig. 7-11 (Δ 0.18 mm vs measured — confirmed)"
+      },
+      "length_span_B_measured": {
+        "value": 123.0,
+        "unit": "mm",
+        "status": "measured",
+        "source": "Chris, Geodreieck, ±0.5 mm, 2026-08-30"
+      },
+      "length_span_B_derived": {
+        "value": 123.586,
+        "unit": "mm",
+        "status": "derived",
+        "source": "127.167 − 3.581, Fig. 7-11 (Δ 0.59 mm vs measured — consistent)"
+      },
+      "near_X_candidate_chain_a": {
+        "value": 7.298,
+        "unit": "mm",
+        "status": "unresolved",
+        "source": "Fig. 7-11 printed dimension chain, reading A — board-triboard-tc3x9-mechanical.md"
+      },
+      "near_X_candidate_chain_b": {
+        "value": 7.812,
+        "unit": "mm",
+        "status": "unresolved",
+        "source": "Fig. 7-11 printed dimension chain, reading B (matches hand measurement to 0.32 mm) — board-triboard-tc3x9-mechanical.md"
+      },
+      "width_span_candidate_chain_a": {
+        "value": 85.536,
+        "unit": "mm",
+        "status": "unresolved",
+        "source": "derived 92.834 − 7.298, Fig. 7-11 reading A"
+      },
+      "width_span_candidate_chain_b": {
+        "value": 85.022,
+        "unit": "mm",
+        "status": "unresolved",
+        "source": "derived 92.834 − 7.812, Fig. 7-11 reading B"
+      },
+      "width_span_hand_measured": {
+        "value": 84.7,
+        "unit": "mm",
+        "status": "measured",
+        "source": "Chris, Geodreieck, ±0.5 mm resolution, 2026-08-30 — both rows read identical"
+      },
+      "width_span_range_unresolved": {
+        "value": "84.7–85.0",
+        "unit": "mm",
+        "status": "unresolved",
+        "source": "three independent reading methods (printed chain, vector-path extraction, hand measurement) disagree by more than the ±0.5 mm measurement resolution; board-triboard-tc3x9-mechanical.md, 'Why the width axis was abandoned rather than chased'"
+      },
+      "mount_datum_boss_diameter": {
+        "value": 3.4,
+        "unit": "mm",
+        "status": "decided",
+        "source": "Chris's decision, gate-2, 2026-08-30 — semi-kinematic four-point mount, datum boss"
+      },
+      "mount_slot_boss": {
+        "value": "3.4 × 4.4 mm slot, along width (X) axis",
+        "status": "decided",
+        "source": "Chris's decision, gate-2, 2026-08-30 — absorbs ±0.5 mm of X-axis uncertainty"
+      },
+      "mount_oversized_boss_diameter": {
+        "value": "4.2–4.5",
+        "unit": "mm",
+        "status": "decided",
+        "source": "Chris's decision, gate-2, 2026-08-30 — two free bosses"
+      }
+    },
+    "arms": {
+      "material": {
+        "value": "carbon-fibre (CFK) square tube",
+        "status": "decided",
+        "source": "commit 1cb5c6f, 2026-08-30; einkaufsliste.md §6a"
+      },
+      "outer_dim": {
+        "value": "10 × 10",
+        "unit": "mm",
+        "status": "decided",
+        "source": "einkaufsliste.md §6a, Lindinger P: 9810632"
+      },
+      "inner_dim": {
+        "value": "8.5 × 8.5",
+        "unit": "mm",
+        "status": "decided",
+        "source": "einkaufsliste.md §6a, Lindinger P: 9810632"
+      },
+      "wall_thickness": {
+        "value": 0.75,
+        "unit": "mm",
+        "status": "decided",
+        "source": "einkaufsliste.md §6a (also consistent with (10 − 8.5)/2 from outer/inner dims)"
+      },
+      "stock_length": {
+        "value": 1000,
+        "unit": "mm",
+        "status": "decided",
+        "source": "einkaufsliste.md §6a, Lindinger P: 9810632 — 1 m yields 4 arms of 225 mm + 100 mm offcut"
+      },
+      "mass_per_arm": {
+        "value": 10.0,
+        "unit": "g",
+        "status": "decided",
+        "source": "einkaufsliste.md §6a, '~10,0 g je 225-mm-Arm'"
+      },
+      "mass_4_arms": {
+        "value": 40,
+        "unit": "g",
+        "status": "decided",
+        "source": "commit 1cb5c6f — vs 257 g for four printed PETG arms of the same length"
+      },
+      "cross_section_choice": {
+        "value": "square, not round",
+        "status": "decided",
+        "source": "commit 1cb5c6f — anti-rotation (a round tube can turn in its mount and tilt the thrust vector); also gives flat mating faces at tip (motor) and root (plate)"
+      }
+    },
+    "material": {
+      "centre_plate_material": {
+        "value": "PETG",
+        "status": "decided",
+        "source": "commit 1cb5c6f, 2026-08-30 — ASA Aero rejected (foaming filament trades density for stiffness/layer adhesion)"
+      },
+      "petg_glass_transition": {
+        "value": 69,
+        "unit": "°C",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — DSC 10 °C/min; supersedes the 60 °C generic-PETG estimate"
+      },
+      "centre_plate_filament": {
+        "value": "Bambu Lab PETG Basic",
+        "status": "decided",
+        "source": "Chris, 2026-09-03 (spool in use on the X2D); QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens)"
+      },
+      "petg_heat_deflection_1p8MPa": {
+        "value": 68,
+        "unit": "°C",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 75"
+      },
+      "petg_density": {
+        "value": 1.25,
+        "unit": "g/cm³",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 1183; plate mass roll-up input"
+      },
+      "petg_youngs_modulus_xy": {
+        "value": 2780,
+        "unit": "MPa",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 527, ±65"
+      },
+      "petg_youngs_modulus_z": {
+        "value": 2550,
+        "unit": "MPa",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 527, ±100"
+      },
+      "petg_bending_modulus_xy": {
+        "value": 1950,
+        "unit": "MPa",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 178, ±50"
+      },
+      "petg_tensile_strength_xy": {
+        "value": 51,
+        "unit": "MPa",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 527, ±1"
+      },
+      "petg_tensile_strength_z": {
+        "value": 35,
+        "unit": "MPa",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 527, ±6; use for boss pull-out along print Z"
+      },
+      "petg_impact_strength_xy": {
+        "value": 34.2,
+        "unit": "kJ/m²",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 179 Charpy, ±4.1"
+      },
+      "petg_impact_strength_z": {
+        "value": 10.5,
+        "unit": "kJ/m²",
+        "status": "datasheet",
+        "source": "QuadSE/procurement/datasheets/material-bambu-petg-basic.md (Bambu Filament TDS V3.0, read 2026-09-03; typical values, 100 % infill specimens) — ISO 179 Charpy, ±1.8; 31 % of X-Y — layer adhesion is the weak direction, orient plate loads in-plane"
+      }
+    },
+    "print_volume": {
+      "x2d_bed_x": {
+        "value": 256,
+        "unit": "mm",
+        "status": "decided",
+        "source": "user input 2026-08-29, dispatch SYS1-012 §5; Bambu Lab X2D spec"
+      },
+      "x2d_bed_y": {
+        "value": 256,
+        "unit": "mm",
+        "status": "decided",
+        "source": "user input 2026-08-29, dispatch SYS1-012 §5; Bambu Lab X2D spec"
+      },
+      "x2d_bed_z": {
+        "value": 260,
+        "unit": "mm",
+        "status": "decided",
+        "source": "user input 2026-08-29, dispatch SYS1-012 §5; Bambu Lab X2D spec"
+      },
+      "frame_diagonal": {
+        "value": 450,
+        "unit": "mm",
+        "status": "derived",
+        "source": "F450 class nominal diagonal; exceeds bed (256 mm) ⇒ frame is necessarily centre plate + 4 separate arms, dispatch SYS1-012 §5"
+      }
+    },
+    "mass": {
+      "board_mass": {
+        "value": 121,
+        "unit": "g",
+        "status": "measured",
+        "source": "weighed 2026-08-29, SYS2-MEC-003 — einkaufsliste.md §1 / board-triboard-tc3x9-mechanical.md"
+      },
+      "imu_evb_mass": {
+        "value": 10,
+        "unit": "g",
+        "status": "measured",
+        "source": "weighed 2026-08-29 — einkaufsliste.md §1"
+      },
+      "gnss_breakout_mass": {
+        "value": 7,
+        "unit": "g",
+        "status": "measured",
+        "source": "weighed 2026-08-29 — einkaufsliste.md §1"
+      },
+      "baro_breakout_mass": {
+        "value": 2,
+        "unit": "g",
+        "status": "measured",
+        "source": "weighed 2026-08-29 — einkaufsliste.md §1"
+      },
+      "mag_breakout_mass": {
+        "value": 2,
+        "unit": "g",
+        "status": "measured",
+        "source": "weighed 2026-08-29 — einkaufsliste.md §1"
+      },
+      "aurix_breakout_pcb_mass": {
+        "value": "100–150",
+        "unit": "g",
+        "status": "estimate",
+        "source": "Chris's estimate, not yet built — einkaufsliste.md §2.2; to be weighed per SYS2-MEC-003 once it exists"
+      },
+      "battery_mass": {
+        "value": 397,
+        "unit": "g",
+        "status": "datasheet",
+        "source": "Lindinger P: 9782409 technical data — einkaufsliste.md §4"
+      },
+      "motor_mass_4x": {
+        "value": 270,
+        "unit": "g",
+        "status": "derived",
+        "source": "4 × 67.5 g V3 motor mass — motor-sunnysky-x2216-iii-v3-880kv.md"
+      },
+      "prop_mass_4x": {
+        "value": 46.36,
+        "unit": "g",
+        "status": "derived",
+        "source": "4 × 11.59 g HQProp mass — einkaufsliste.md §3"
+      },
+      "esc_mass": {
+        "value": 15,
+        "unit": "g",
+        "status": "datasheet",
+        "source": "Flywoo GOKU G55M spec — einkaufsliste.md §3"
+      },
+      "arm_mass_4x": {
+        "value": 40,
+        "unit": "g",
+        "status": "decided",
+        "source": "commit 1cb5c6f — CFK square tube, 4 arms"
+      },
+      "frame_mass_planning_value": {
+        "value": 400,
+        "unit": "g",
+        "status": "estimate",
+        "source": "Quadrocopter/doc/projektplan.md §7 planning value — CAD not final, largest unsourced number in the AUM budget per dispatch SYS1-012 §4; replaced once Fusion mass properties are read"
+      },
+      "ethernet_tether_mass_per_metre": {
+        "value": 21.5,
+        "unit": "g/m",
+        "status": "measured",
+        "source": "weighed 2026-08-29 (43 g / 2 m) — einkaufsliste.md §6"
+      },
+      "aum_excluding_tether": {
+        "value": "1572–1622",
+        "unit": "g",
+        "status": "derived",
+        "source": "dispatch SYS1-012 §4 mass-budget roll-up (uses the pre-datasheet 72 g/motor figure; superseded slightly by the 67.5 g V3 mass above, difference ~18 g)"
+      }
+    },
+    "dynamics": {
+      "arm_bending_mode_1": {
+        "value": 46,
+        "unit": "Hz",
+        "status": "derived",
+        "source": "commit 1cb5c6f — analytical Euler-Bernoulli hand calculation (Fusion's modal solver is not scriptable), tip mass 84.1 g, L = 225 mm, 10×10 mm square CFK tube"
+      },
+      "arm_bending_tip_mass_used": {
+        "value": 84.1,
+        "unit": "g",
+        "status": "estimate",
+        "source": "commit 1cb5c6f — input to the Euler-Bernoulli hand calc; composition (motor + prop + hardware) not broken out in the source"
+      },
+      "hover_fundamental_1P_range": {
+        "value": "86–150",
+        "unit": "Hz",
+        "status": "estimate",
+        "source": "commit 1cb5c6f — excitation sweeps with throttle"
+      },
+      "hover_fundamental_2P_range": {
+        "value": "172–300",
+        "unit": "Hz",
+        "status": "estimate",
+        "source": "commit 1cb5c6f — 2nd harmonic (blade pass) of 1P range"
+      },
+      "round_tube_alternative_mode_rejected": {
+        "value": 84,
+        "unit": "Hz",
+        "status": "derived",
+        "source": "commit 1cb5c6f — round 16/14 mm tube rejected: sits on the hover tone, worst available choice"
+      }
+    }
+  },
+  "checks": {
+    "adjacent_motor_spacing": {
+      "value": 318,
+      "unit": "mm",
+      "formula": "l · sqrt(2)",
+      "inputs": {
+        "l": 225
+      },
+      "status": "derived",
+      "source": "dispatch SYS1-012 §5"
+    },
+    "prop_tip_gap": {
+      "value": 64,
+      "unit": "mm",
+      "formula": "adjacent_motor_spacing − prop_diameter",
+      "inputs": {
+        "adjacent_motor_spacing": 318,
+        "prop_diameter": 254
+      },
+      "status": "derived",
+      "source": "dispatch SYS1-012 §5; mech/README.md"
+    },
+    "min_arm_length_for_prop": {
+      "value": 194,
+      "unit": "mm",
+      "formula": "(prop_diameter + clearance) / sqrt(2)",
+      "inputs": {
+        "prop_diameter": 254,
+        "clearance": 20
+      },
+      "status": "derived",
+      "source": "dispatch SYS1-012 §5; SYS2-MEC-007 (225 mm chosen arm clears this)"
+    },
+    "motor_to_board_corner_vs_prop_radius": {
+      "value": "134.6 mm > 127 mm ⇒ disc never sweeps the board",
+      "formula": "motor_to_board_corner_clearance > prop_radius_derived",
+      "inputs": {
+        "motor_to_board_corner_clearance": 134.6,
+        "prop_radius_derived": 127
+      },
+      "status": "derived",
+      "source": "board-triboard-tc3x9-mechanical.md, 'Other mechanically relevant facts'"
+    },
+    "arm_bed_margin": {
+      "value": 31,
+      "unit": "mm",
+      "formula": "x2d_bed_x − arm_length_l",
+      "inputs": {
+        "x2d_bed_x": 256,
+        "arm_length_l": 225
+      },
+      "status": "derived",
+      "source": "dispatch SYS1-012 §5; mech/README.md — printable lying down but with almost no rotational freedom left"
+    }
+  },
+  "open": [
+    "TriBoard X-axis (width) hole span — 84.7–85.0 mm range, three disagreeing reading methods; deliberately not chosen, see board_mount.width_span_range_unresolved. Design response is the semi-kinematic mount scheme, not a resolved number.",
+    "Which of the four TriBoard holes plays which mount role (datum / slot / oversized) — left open for the Fusion shape pass.",
+    "Motor mounting hole pattern / bolt circle — not published anywhere found (motor-sunnysky-x2216-iii-v3-880kv.md, 'Gaps'); to be measured on arrival before arm-tip geometry is drawn.",
+    "Motor shaft protrusion below the mounting base — unknown; needed to size the shaft clearance pocket in the printed arm tip (motor-sunnysky-x2216-iii-v3-880kv.md, 'Gaps').",
+    "Centre plate thickness — depends on the material decision (PETG fixed) but not yet set.",
+    "Arm wall thickness for the printed centre plate boss walls — not applicable to the CFK tube itself (0.75 mm, decided) but the plate-side wall thickness around inserts/bosses is open.",
+    "Arm-to-plate joint method — Klemmung (clamp) / Verschraubung (screw) / Verklebung (bonding) all listed as open in einkaufsliste.md §6a; wall is thin (0.75 mm) which argues against a clamp.",
+    "Frame mass — 400 g remains a projektplan §7 planning value; the CAD is not final and no Fusion mass-properties read has occurred yet.",
+    "AURIX breakout PCB mass — 100–150 g is Chris's estimate; the board is not yet built and cannot be weighed."
+  ]
+}

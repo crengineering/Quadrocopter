@@ -29,6 +29,12 @@ function result = fit_motor_coeffs(sweep, varargin)
 %                                  (Kt = 9.55/KV [Nm/A], the datasheet
 %                                  relation in
 %                                  procurement/datasheets/motor-sunnysky-x2216-iii-v3-880kv.md).
+%                                  kQ is therefore a datasheet-dependent
+%                                  engineering estimate of shaft torque, not
+%                                  a measured one (see the kQ fit comment
+%                                  below); a no-load-current row added to
+%                                  the sweep protocol would remove the I0
+%                                  bias it is currently built on.
 %     'StepResponse' ([])          optional Nx2 [t (s), erpm] transient
 %                                  recorded on one throttle step, used only
 %                                  for the tau fit. Leave empty to skip it
@@ -51,23 +57,55 @@ function result = fit_motor_coeffs(sweep, varargin)
 %                                  noisy-but-correct sweep -- this is the
 %                                  metric that actually separates them.
 %
-%   OUTPUT  result (struct)
-%     kT, kT_R2, kT_residual_rms, kT_residual_rel [N/(rad/s)^2], fit quality
-%     kQ, kQ_R2, kQ_residual_rms   [Nm/(rad/s)^2]
-%     tau                          [s], NaN if no StepResponse given
-%     w_max                        [rad/s], top of the accepted sweep
+%   OUTPUT  result (struct) -- every field below is present, with the same
+%   name and field order, on every return path (too-few-steps rejection,
+%   monotonic/R2/residual/tau rejection, or acceptance), so a batch of
+%   results concatenates cleanly, e.g. [r1 r2 ...] across many sweeps.
+%     kT, kQ, w_max                NaN whenever accepted is false -- a
+%                                   caller that ignores `accepted` cannot
+%                                   use a rejected fit silently; the
+%                                   fitted-but-rejected numbers are kept in
+%                                   rejected_fit (below) for diagnosis
+%     kT_R2, kT_residual_rms, kT_residual_rel [N/(rad/s)^2], fit quality
+%                                   (kept even on rejection, for diagnosis)
+%     kQ_R2, kQ_residual_rms       [Nm/(rad/s)^2] (also kept on rejection)
+%     tau                          [s]; NaN if no StepResponse was given
+%                                   (undetermined -- not a failure), or if
+%                                   one was given but could not be fitted
+%                                   (a failure -- see reason, accepted is
+%                                   then false; a supplied-but-unusable
+%                                   transient rejects the sweep, it never
+%                                   leaves tau silently missing)
+%     rejected_fit.kT/kQ/w_max     the fitted numbers stashed here when
+%                                   accepted is false; NaN while accepted
+%                                   is true
 %     n_used, n_rejected           row counts after the NaN/validity guard
-%     monotonic                    logical, thrust non-decreasing in throttle
+%     monotonic                    logical, thrust non-decreasing in
+%                                   throttle. NOT EVALUATED (pre-seeded
+%                                   false) on the too-few-steps early
+%                                   return, i.e. only meaningful when
+%                                   n_used >= MinSteps -- check `reason`
+%                                   (or n_used vs MinSteps) before reading
+%                                   it; pre-seeded false rather than NaN
+%                                   because `if r.monotonic` / `~r.monotonic`
+%                                   treat NaN as a nonzero, truthy value in
+%                                   MATLAB (NaN ~= 0), which would silently
+%                                   read as "monotonic ok"
 %     accepted                     logical -- SWE1-MDL-003 acceptance verdict
-%     reason                       string explaining a rejection (or "ok")
+%     reason                       string explaining a rejection (or "ok");
+%                                   'tauFitFailed:<why>' for an unusable
+%                                   supplied StepResponse
 %
 %   ACCEPTANCE (SWE1-MDL-003): a sweep is adopted into quad_params.m only if,
 %   after the guard, >= MinSteps rows remain, thrust is monotonic (within a
-%   small noise tolerance) in throttle, and kT_R2 >= MinR2. Anything short
-%   of that comes back with accepted = false and a reason -- NaN and outlier
-%   rows are counted, never silently dropped without a trace, and a rejected
-%   sweep is never substituted with a vendor number (see PROP_TO_FIRMWARE.md
-%   §2 and §5 -- no invented numbers go into quad_params.m).
+%   small noise tolerance) in throttle, kT_R2 >= MinR2 AND the normalized kT
+%   residual <= MaxRelResidual (R^2 alone is not enough -- see
+%   MaxRelResidual below), and -- when a StepResponse transient was supplied
+%   -- it could actually be fitted. Anything short of that comes back with
+%   accepted = false and a reason -- NaN and outlier rows are counted, never
+%   silently dropped without a trace, and a rejected sweep is never
+%   substituted with a vendor number (see PROP_TO_FIRMWARE.md §2 and §5 --
+%   no invented numbers go into quad_params.m).
 %
 %   See also SYNTH_MOTOR_SWEEP, TEST_FIT_MOTOR_COEFFS.
 
@@ -101,11 +139,22 @@ valid = valid & (T.erpm > 0) & (T.thrust_g > 0) & (T.vbat_V > 0) & (T.esc_I_A >=
 n_used     = sum(valid);
 n_rejected = n_total - n_used;
 
+% Pre-seed EVERY output field here, once, so every return path below
+% (too-few-steps, monotonic/R2/residual/tau rejection, or acceptance)
+% yields an identical field set in the same order -- MAJOR 1 fix: a
+% result struct that only grows fields on the "far" return paths breaks
+% concatenation ([r1 r2]) of a rejected result with an accepted one.
+% `monotonic` is seeded false, not NaN: `if r.monotonic` / `~r.monotonic`
+% treat NaN as truthy in MATLAB (NaN ~= 0), so a NaN sentinel here would
+% silently read as "monotonic ok" on the too-few-steps path -- see the
+% OUTPUT doc above for how to tell "not evaluated" from "evaluated false".
 result = struct('kT', NaN, 'kT_R2', NaN, 'kT_residual_rms', NaN, ...
+                 'kT_residual_rel', NaN, ...
                  'kQ', NaN, 'kQ_R2', NaN, 'kQ_residual_rms', NaN, ...
                  'tau', NaN, 'w_max', NaN, ...
                  'n_used', n_used, 'n_rejected', n_rejected, ...
-                 'monotonic', false, 'accepted', false, 'reason', "");
+                 'monotonic', false, 'accepted', false, 'reason', "", ...
+                 'rejected_fit', struct('kT', NaN, 'kQ', NaN, 'w_max', NaN));
 
 if n_used < opt.MinSteps
     result.reason = sprintf('only %d valid steps of %d, need >= %d', ...
@@ -165,12 +214,27 @@ result.kQ_R2          = kQ_R2;
 result.kQ_residual_rms = sqrt(mean(resid_kQ.^2));
 
 % ---- tau fit: first-order step response, log-linearized ---------------
+% Three distinct states (MAJOR 2 fix -- tau used to stay silently NaN with
+% reason='ok'/accepted=true whenever a supplied transient was degenerate):
+%   1) no StepResponse given      -> tau = NaN, reason untouched (documented
+%                                     above: "undetermined", not a failure)
+%   2) StepResponse given, fit ok -> tau numeric
+%   3) StepResponse given but unusable (step-down, or too few samples in
+%      the fit window) -> tau stays NaN AND the sweep is rejected below
+%      (reason = 'tauFitFailed:<why>', accepted = false) -- a supplied
+%      transient that cannot be fitted is a rejected sweep, never a
+%      silently missing tau.
+tau_failed = false;
+tau_fail_reason = '';
 if ~isempty(opt.StepResponse)
     t    = opt.StepResponse(:,1);
     y    = opt.StepResponse(:,2);
     y0   = y(1);
     yf   = mean(y(max(1,end-4):end)); % steady-state = last 5 samples
-    if yf > y0
+    if yf <= y0
+        tau_failed = true;
+        tau_fail_reason = sprintf('step-down or non-increasing transient (yf=%.4g <= y0=%.4g)', yf, y0);
+    else
         z = (yf - y) / (yf - y0);
         % Keep only 0.05 <= z <= 0.95: near t=0, z~1 carries little slope
         % information either; near full settle, measurement noise swamps
@@ -182,22 +246,38 @@ if ~isempty(opt.StepResponse)
         if sum(keep) >= 5
             pfit = polyfit(t(keep), log(z(keep)), 1);
             result.tau = -1/pfit(1);
+        else
+            tau_failed = true;
+            tau_fail_reason = sprintf('too few samples in the 0.05-0.95 fit window (%d < 5)', sum(keep));
         end
     end
 end
 
 % ---- acceptance verdict (SWE1-MDL-003) ----------------------------------
+reject_reason = '';
 if ~monotonic
-    result.reason = 'thrust not monotonic in throttle (beyond noise tolerance)';
-    return
-end
-if kT_R2 < opt.MinR2
-    result.reason = sprintf('kT R^2 = %.4f < required %.4f', kT_R2, opt.MinR2);
-    return
-end
-if result.kT_residual_rel > opt.MaxRelResidual
-    result.reason = sprintf('kT normalized residual = %.4f > allowed %.4f (R^2 alone did not catch this -- see MaxRelResidual)', ...
+    reject_reason = 'thrust not monotonic in throttle (beyond noise tolerance)';
+elseif kT_R2 < opt.MinR2
+    reject_reason = sprintf('kT R^2 = %.4f < required %.4f', kT_R2, opt.MinR2);
+elseif result.kT_residual_rel > opt.MaxRelResidual
+    reject_reason = sprintf('kT normalized residual = %.4f > allowed %.4f (R^2 alone did not catch this -- see MaxRelResidual)', ...
         result.kT_residual_rel, opt.MaxRelResidual);
+elseif tau_failed
+    reject_reason = sprintf('tauFitFailed:%s', tau_fail_reason);
+end
+
+if ~isempty(reject_reason)
+    % A rejected sweep never hands back the fitted kT/kQ/w_max as if they
+    % were usable -- stash them in rejected_fit for diagnosis and NaN the
+    % primary fields (notes from the flight-reviewer verdict).
+    result.reason             = reject_reason;
+    result.rejected_fit.kT    = result.kT;
+    result.rejected_fit.kQ    = result.kQ;
+    result.rejected_fit.w_max = result.w_max;
+    result.kT    = NaN;
+    result.kQ    = NaN;
+    result.w_max = NaN;
+    result.accepted = false;
     return
 end
 
@@ -208,8 +288,20 @@ end
 
 % ------------------------------------------------------------------------
 function s = table2struct_or_table(sweep)
-%TABLE2STRUCT_OR_TABLE  Normalize a table or struct array to a plain struct
-%   of column vectors, with case-insensitive field/variable name matching.
+%TABLE2STRUCT_OR_TABLE  Normalize a table, struct array, or scalar struct
+%   of column vectors to a plain struct of column vectors, with
+%   case-insensitive field/variable name matching.
+%
+%   MAJOR 3 fix: a scalar struct of column vectors (the natural MF4->struct
+%   conversion) used to come out of here transposed to 1xN by the old
+%   `[sweep.(f)]'` idiom (correct only for a struct ARRAY, where the same
+%   idiom builds a row via comma-separated-list concatenation and the `'`
+%   fixes it back to a column) -- callers then hit implicit N x N
+%   expansion in the valid & isfinite(v) guard and the logical index died.
+%   `v(:)` after the CS-list concatenation normalises both shapes
+%   correctly. Field-length mismatches (e.g. a hand-built struct with one
+%   short column) are now caught explicitly here rather than silently
+%   misaligning rows or exploding in the guard.
     want = {'throttle','erpm','thrust_g','vbat_V','esc_I_A'};
     if istable(sweep)
         names = sweep.Properties.VariableNames;
@@ -220,6 +312,7 @@ function s = table2struct_or_table(sweep)
             'sweep must be a table or struct array');
     end
     s = struct();
+    lens = zeros(1, numel(want));
     for k = 1:numel(want)
         idx = find(strcmpi(names, want{k}), 1);
         if isempty(idx)
@@ -227,9 +320,20 @@ function s = table2struct_or_table(sweep)
                 'sweep is missing required field "%s"', want{k});
         end
         if istable(sweep)
-            s.(want{k}) = double(sweep.(names{idx}));
+            v = double(sweep.(names{idx}));
         else
-            s.(want{k}) = double([sweep.(names{idx})]');
+            v = double([sweep.(names{idx})]);
         end
+        v = v(:); % normalise to a column regardless of struct-array (one
+                  % row per element) vs scalar-struct-of-column-vectors
+                  % input shape
+        s.(want{k}) = v;
+        lens(k) = numel(v);
+    end
+    if any(lens ~= lens(1))
+        detail = strjoin(arrayfun(@(k) sprintf('%s=%d', want{k}, lens(k)), ...
+            1:numel(want), 'UniformOutput', false), ', ');
+        error('fit_motor_coeffs:badInput', ...
+            'sweep fields have inconsistent lengths: %s', detail);
     end
 end
