@@ -29,6 +29,28 @@ revision, export
 revision's files. The newest `params_rNN.json` is the dimensional SSoT —
 a dimension that is not in it with a source does not exist.
 
+## Decision 2026-09-03 — bought F450 frame, printed carriers
+
+Chris decided on a **bought F450 kit** (450 mm, PA66-GF arms with 16/19 mm
+motor mounts, GFK plates) plus **tall landing gear**, after the printed
+basebody concept (`CONCEPT_r02.md`) came out at ~860 g frame side and with an
+unresolved span/cantilever conflict. SYS1-011 now reads: *the parts that carry
+the electronics — TriBoard adapter plate, canopy, battery cage — are printed
+on the X2D.* Datasheet note: `QuadSE/procurement/datasheets/frame-f450-generic.md`.
+
+What this does to this directory:
+
+- `params_r01.json` stays the record of the r01 decisions, but its `arms`,
+  `material.centre_plate_*` and `checks.bed_margin` entries describe the
+  withdrawn construction. **`params_r02.json` is written from the measured
+  kit** (top/bottom plate outline, hole pattern, thickness, foot height, arm
+  first bending mode) once it arrives — nothing is drawn before that.
+- The printed parts of record become: **TriBoard adapter plate** (real
+  non-rectangular hole pattern, semi-kinematic mount as below), **canopy**,
+  **battery cage**. Fusion designs `frame_r01` and `concept_r02_study` are
+  superseded; keep them as reference only.
+- The "Decided since" section below is history as of 2026-08-30.
+
 ## Standing constraints
 
 See `QuadSE/requirements/SYS3/SYS3-005 — Frame.md`, `QuadSE/requirements/SYS2/`
