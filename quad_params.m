@@ -1,17 +1,26 @@
 % ---- Quadrocopter-Parameter (F450, Prop Ø 254 mm — SYS1-012) ----
-% PLATZHALTER: kT, kQ, tau, w_max und m sind NICHT für den Projekt-Propeller
-% (Ø 254 mm, der einzige — Entscheidung 2026-09-03) gemessen. Sie werden durch
-% den SWE1-MDL-003-Fit aus dem Bench-Sweep ersetzt (doc/PROP_TO_FIRMWARE.md §5).
+% kT und w_max GEMESSEN am Schubstand (Run 3, 2026-10-15, X2216-III 880 KV +
+% HQProp 10x4.5, 14,8 V Netzteil; QuadSE/evidence/INDEX.md Zeile BB9B34CB480DCC42,
+% Herleitung analysis/propulsion_rig_run3.m, Gate Chris 2026-10-16). kQ ist eine
+% SCHÄTZUNG (kein Drehmomentsensor), tau und m bleiben Platzhalter.
+% MIX_inv ist in sil/flight_ctrl_lct.c und AurixTricore/src/asw/CtrlReplay.c
+% ausgerollt — kT/kQ/w_max IMMER an allen drei Stellen zusammen ändern.
 m    = 1.20;                % kg   Abflugmasse
 g    = 9.81;                % m/s^2
 l    = 0.225;               % m    Armlänge Zentrum->Rotor
 d    = l/sqrt(2);           % m    effektiver Hebelarm (X-Konfig)
 Ixx  = 1.0e-2;  Iyy = 1.0e-2;  Izz = 1.8e-2;   % kg m^2
 Ivec = [Ixx; Iyy; Izz];
-kT   = 5.0e-6;              % N/(rad/s)^2   Schubkoeffizient
-kQ   = 5.0e-8;              % Nm/(rad/s)^2  Momentenkoeffizient
-tau  = 0.05;                % s    Zeitkonstante Motor+ESC
-w_max= 1200;                % rad/s max. Rotordrehzahl
+kT   = 1.162e-5;            % N/(rad/s)^2   Schubkoeffizient, GEMESSEN: Sekante T/w^2 im Schwebepunkt
+                            %   (300 g/Motor = 4806 rpm = 503,3 rad/s); LS-Fit >= 2000 rpm = 1.203e-5,
+                            %   Exponent 2,20 -> Schubfehler +12 % bei 100 g, 0 im Schweben, -6 % bei 770 g
+kQ   = 1.66e-7;             % Nm/(rad/s)^2  Momentenkoeffizient, SCHÄTZUNG: eta*(U*I-1,1 W)/w^3 im
+                            %   Schwebepunkt mit eta = 0,70 (ESC+Motor); Band 0,60..0,80 -> 1.42e-7..1.90e-7.
+                            %   Offen bis Drehmomentmessung (Reaktionsarm am Motorhalter)
+tau  = 0.05;                % s    Zeitkonstante Motor+ESC — PLATZHALTER, nicht gemessen (Sprung mit
+                            %   bidir eRPM bei 1 kHz aufzeichnen)
+w_max= 782;                 % rad/s Mixer-Grenze = Spitze des gemessenen Sweeps (sp 1500, 7471 rpm,
+                            %   770 g, 7,85 A) — Sweep-Grenze (Prop gelöst), nicht die Motorgrenze
 Cd   = diag([0.10 0.10 0.15]);  % linearer Drag [N/(m/s)]
 h0 = 2;
 
@@ -57,5 +66,5 @@ CTRL_IMPL = 1; % 1 = Simulink-Regler, 2 = C-Code (S-Function)
 
 
 % ---- Trimm: Schwebedrehzahl aus 4*kT*w^2 = m*g ----
-w_hover = sqrt(m*g/(4*kT));           % -> 767.2 rad/s, muss < w_max sein!
+w_hover = sqrt(m*g/(4*kT));           % -> 503.3 rad/s (4806 rpm), muss < w_max sein!
 fprintf('Hover: %.1f rad/s (%.0f%% von w_max)\n', w_hover, 100*w_hover/w_max);
