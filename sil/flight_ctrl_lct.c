@@ -19,7 +19,7 @@ static const ctrl_params_t P = {
     /* Physik */
     1.20f,          /* m     */
     9.81f,          /* g     */
-    1200.0f,        /* w_max */
+    782.0f,         /* w_max - Schubstand Run 3 (2026-10-15), Spitze des Sweeps, evidence BB9B34CB480DCC42 */
 
     /* Abtastzeit */
     0.001f,         /* Ts    */
@@ -41,12 +41,15 @@ static const ctrl_params_t P = {
     { 1.3f,   1.3f,   0.08f  },            /* tau_sat_up  */
     { -1.3f, -1.3f,  -0.08f  },            /* tau_sat_low */
 
-    /* Mixer-Inverse, Zeilen-Major */
+    /* Mixer-Inverse, Zeilen-Major - kT 1.162e-5 N/(rad/s)^2 (gemessen, Sekante Schwebepunkt),
+     * kQ 1.66e-7 Nm/(rad/s)^2 (SCHAETZUNG, eta 0,70), Schubstand Run 3 2026-10-15, evidence
+     * BB9B34CB480DCC42; inv(MIX) aus quad_params.m. Zusammen mit quad_params.m und
+     * AurixTricore/src/asw/CtrlReplay.c aendern. */
     {
-        5.000000000e+04f, -3.142696805e+05f,  3.142696805e+05f,  5.000000000e+06f,
-        5.000000000e+04f, -3.142696805e+05f, -3.142696805e+05f, -5.000000000e+06f,
-        5.000000000e+04f,  3.142696805e+05f, -3.142696805e+05f,  5.000000000e+06f,
-        5.000000000e+04f,  3.142696805e+05f,  3.142696805e+05f, -5.000000000e+06f
+        2.151462995e+04f, -1.352279176e+05f,  1.352279176e+05f,  1.506024096e+06f,
+        2.151462995e+04f, -1.352279176e+05f, -1.352279176e+05f, -1.506024096e+06f,
+        2.151462995e+04f,  1.352279176e+05f, -1.352279176e+05f,  1.506024096e+06f,
+        2.151462995e+04f,  1.352279176e+05f,  1.352279176e+05f, -1.506024096e+06f
     }
 };
 
