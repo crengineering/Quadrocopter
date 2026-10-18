@@ -19,7 +19,7 @@ static const ctrl_params_t P = {
     /* Physik */
     1.20f,          /* m     */
     9.81f,          /* g     */
-    782.0f,         /* w_max - Schubstand Run 3 (2026-10-15), Spitze des Sweeps, evidence BB9B34CB480DCC42 */
+    865.0f,         /* w_max = w_lim: 50-A-Kriterium (SYS2-PWR-001), sp 1600 auf vollem Akku = 8257 rpm, 970 g/Motor; Schubstand Run 5 2026-10-18, evidence 4829A25237BFB7C8; NICHT die Motorgrenze (w_motor_max 1080 rad/s) */
 
     /* Abtastzeit */
     0.001f,         /* Ts    */
