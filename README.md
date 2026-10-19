@@ -16,6 +16,13 @@ same idea.
 | [**AurixTricore**](https://github.com/crengineering/AurixTricore) | TC399 firmware, drivers, XCP memory map, replay protocol |
 | [**AurixGUI**](https://github.com/crengineering/AurixGUI) | Qt6 measurement and calibration GUI |
 
+![The quadrocopter from above: F450 frame, TriBoard flight stack on the printed adapter plate, four motors with 254 mm propellers](doc/img/Quadrocopter_buildup.jpg)
+
+*The aircraft as built: F450 frame, SunnySky X2216-III 880 KV motors with
+HQProp 254 mm propellers, the TriBoard TC3X9 flight stack on a 3D-printed
+adapter plate, the 4-in-1 ESC underneath. The propellers are fitted for the
+photo only — the aircraft has not flown yet.*
+
 ---
 
 ## Documentation
@@ -86,8 +93,9 @@ Kp = ωc · I. The I-term covers steady disturbance torques, its zero placed nea
 
 Yaw carries higher gains because its inertia is larger — which keeps the
 bandwidth equal across all three axes. Its tight limit follows from weak yaw
-authority: τ_z,max = 2·kQ·(w_max² − w_hover²) ≈ 0,085 Nm. Anti-windup is by
-clamping, because the motors saturate; without it the integrator charges up at
+authority, τ_z,max = 2·kQ·(w_max² − w_hover²) ≈ 0,085 Nm with the placeholder
+drive the loops were designed for (roughly twice that with the measured drive —
+the re-tune is an open item). Anti-windup is by clamping, because the motors saturate; without it the integrator charges up at
 the limit and blocks the controller for seconds afterwards.
 
 **Middle — attitude (P).** With the rate loop treated as ideal and Φ̇ ≈ om, the
@@ -143,8 +151,10 @@ Identical in model, C code and firmware:
 | `om` | body rates `[p, q, r]` | rad/s |
 | `v_b` | velocity in the body frame | m/s |
 
-Plant parameters in `quad_params.m`: m = 1,20 kg, Ixx = Iyy = 1,0e-2 kg m²,
-Izz = 1,8e-2 kg m², X configuration.
+Plant parameters in `quad_params.m`: m = 1,20 kg, l = 225 mm, Ixx = Iyy =
+1,0e-2 kg m², Izz = 1,8e-2 kg m², X configuration. The propulsion constants
+are measured, not assumed — see
+[Propulsion identification](#propulsion-identification).
 
 ---
 
@@ -222,6 +232,43 @@ a correct controller looks like a failure.
 
 ---
 
+## Propulsion identification
+
+The drive was decided in one gate — F450 frame with l = 225 mm, SunnySky
+X2216-III 880 KV on 4S, HQProp 10×4,5″ (Ø 254 mm) — and then **measured** on a
+single-motor thrust rig rather than taken from datasheets: a printed stand on a
+0,1 g scale, the motor on one channel of the flight ESC, throttle stepped over
+XCP from the groundstation and held per step, rpm from the ESC's bidirectional
+DShot reply, voltage and current from the supply. Five runs; the first two
+found an ESC setting (low-RPM power protect scaled by a wrong stored KV) and a
+propeller mounted against its direction before the curve was valid.
+
+| Quantity | Value | Source |
+|---|---|---|
+| kT (thrust, T = kT·ω²) | 1,16e-5 N/(rad/s)² secant at hover; LS fit 1,20–1,25e-5, exponent ≈ 2,2 | runs 3 and 5, lab supply and flight pack |
+| hover point | 503 rad/s (4806 rpm), 300 g per motor | trim from kT and m |
+| full throttle, one motor on the pack | 1410 g at 9886 rpm, 17,6 A | run 5 |
+| w_max (rotor-speed ceiling) | 865 rad/s = DShot 1600 — keeps four motors under 50 A | run 5, current vs rpm |
+| kQ (torque) | 1,66e-7 Nm/(rad/s)² — **estimate** from electrical power at η ≈ 0,7 | open until a torque measurement |
+| τ (motor + ESC) | 0,05 s — **placeholder** | open: step response from the 1 kHz eRPM |
+
+The fit lives in `analysis/` (`fit_motor_coeffs.m` with its own test;
+`propulsion_rig_run3.m` parses the run log so that no number is retyped). The
+mixer inverse `MIX_inv` is unrolled in `sil/flight_ctrl_lct.c` and in the
+firmware's replay endpoint — kT, kQ and w_max change in all three places
+together, never in one.
+
+## Mechanics
+
+`mech/` holds the approved snapshots of the mechanical design; the working copy
+lives in Autodesk Fusion. A bought F450 kit carries the aircraft, the parts
+that carry the electronics are printed in PETG on a Bambu Lab X2D: the TriBoard
+adapter plate with the board's non-rectangular, semi-kinematic hole pattern,
+and the thrust stand above. `mech/README.md` records the decisions and the
+versioning rule, `mech/drafts/` the STEP/STL/3MF exports with their notes.
+
+---
+
 ## Quick start
 
 Requires MATLAB / Simulink and MinGW-w64 for `mex`. The PiL run additionally
@@ -258,7 +305,10 @@ sil/                      C controller + legacy_code wrappers
   s_functions.slx           masked blocks for copying into a model
 tests/                    MiL suite T1-T8 + run_all_tests
 pil/                      vector replay harness against the TC399
-doc/                      the three reference documents (HTML)
+analysis/                 thrust-rig fits: fit_motor_coeffs.m (+ test), propulsion_rig_run3.m
+mech/                     mechanical design snapshots (adapter plate, thrust stand), params JSON
+doc/                      the three reference documents (HTML), MBD_PATH.md,
+                          PROP_TO_FIRMWARE.md, projektplan.md
 ```
 
 ---
@@ -280,35 +330,43 @@ doc/                      the three reference documents (HTML)
 - [x] PiL: UDP vector replay against the TC399, channel-wise tolerance check
 - [x] Execution time on target: **3,9 µs per cycle** against a 1 ms budget
 - [x] Controller code byte-identical across Simulink, PC and target hardware
+- [x] Drive decided and **measured**: kT from a single-motor thrust rig, the
+      rotor-speed ceiling from the measured current, both mirrored into the
+      model and the PiL replay parameter set
+- [x] Airframe built: F450 frame, printed TriBoard adapter plate, flight stack
+      and ESC mounted
+- [x] Test stage 0 passed on the target: DShot300 driver, arming and kill chain
+      verified without propellers (in `AurixTricore`)
 
 **Open**
 
 - [ ] **Sensor models** — noise, bias, drift and sample rates for IMU, baro,
       magnetometer and GNSS. Today the controller is fed the true plant states
       directly; that is the largest remaining gap to reality.
-- [ ] **State estimator** — complementary filter (quaternion, 1 kHz), to be
-      verified through the same replay chain as the controller
+- [ ] **State estimator in the model** — the firmware already runs one
+      (quaternion Mahony AHRS plus three Kalman channels); its Simulink twin,
+      needed to close the loop in simulation and to verify the firmware
+      through the replay chain, is the work package in
+      [`doc/MBD_PATH.md`](doc/MBD_PATH.md)
 - [ ] **Closed loop with the estimator** — stability under realistic sensors
-- [ ] **Actuation** — bidirectional DShot300 driver on the TC399, RPM notch
-      filter from the speed feedback
+- [ ] **Re-tune against the measured drive** — gains, the yaw torque limit and
+      the inertias still come from the placeholder parameter set; kQ and τ are
+      an estimate and a placeholder (torque from a reaction arm, τ from the
+      1 kHz eRPM step response)
+- [ ] **RPM notch filter** from the bidirectional-DShot speed feedback
 - [ ] **Ball-joint rig disturbance model** — pendulum term M = m·g·d·sin(phi)
       for test stage 1
 - [ ] **Commit a reference run** — a stored PiL result as a regression baseline
 - [ ] **CI** — run the MiL suite automatically; today it is manual only
-- [ ] **Mechanics** — frame, motor KV and propellers are coupled and not yet
-      fixed; the constraint is the 100 × 160 mm board footprint.
-      The propeller reaches the flight firmware through exactly one path
-      (blade-pass frequency → required sample rate); the arithmetic, the
-      decision procedure and what does *not* change are written down in
-      [`doc/PROP_TO_FIRMWARE.md`](doc/PROP_TO_FIRMWARE.md). Note that
-      `quad_params.m` and `doc/projektplan.md` currently describe two
-      different aircraft (122 Hz vs 83 Hz hover fundamental) — the propeller
-      choice is what picks between them
+
+How the propeller choice reaches the flight firmware (blade-pass frequency →
+required sample rate) is written down in
+[`doc/PROP_TO_FIRMWARE.md`](doc/PROP_TO_FIRMWARE.md).
 
 Test stages up to flight, each with its own safety concept: **0** motors on the
-rig without propellers (DShot, arming, kill) → **1** ball-joint rig (rate +
-attitude) → **2** tethered over grass (altitude hold) → **3** free flight,
-attitude stabilised → **4** position hold with GNSS.
+rig without propellers (DShot, arming, kill) — *passed* → **1** ball-joint rig
+(rate + attitude) → **2** tethered over grass (altitude hold) → **3** free
+flight, attitude stabilised → **4** position hold with GNSS.
 
 ---
 
