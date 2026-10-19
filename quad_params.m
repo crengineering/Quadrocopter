@@ -1,5 +1,5 @@
 % ---- Quadrocopter-Parameter (F450, Prop Ø 254 mm — SYS1-012) ----
-% kT und w_max GEMESSEN am Schubstand (Run 3, 2026-10-15, X2216-III 880 KV +
+% kT GEMESSEN am Schubstand (Run 3, 2026-10-15, X2216-III 880 KV +
 % HQProp 10x4.5, 14,8 V Netzteil; QuadSE/evidence/INDEX.md Zeile BB9B34CB480DCC42,
 % Herleitung analysis/propulsion_rig_run3.m, Gate Chris 2026-10-16). kQ ist eine
 % SCHÄTZUNG (kein Drehmomentsensor), tau und m bleiben Platzhalter.
@@ -19,8 +19,10 @@ kQ   = 1.66e-7;             % Nm/(rad/s)^2  Momentenkoeffizient, SCHÄTZUNG: eta
                             %   Offen bis Drehmomentmessung (Reaktionsarm am Motorhalter)
 tau  = 0.05;                % s    Zeitkonstante Motor+ESC — PLATZHALTER, nicht gemessen (Sprung mit
                             %   bidir eRPM bei 1 kHz aufzeichnen)
-w_max= 782;                 % rad/s Mixer-Grenze = Spitze des gemessenen Sweeps (sp 1500, 7471 rpm,
-                            %   770 g, 7,85 A) — Sweep-Grenze (Prop gelöst), nicht die Motorgrenze
+w_max= 865;                 % rad/s w_lim: Drehzahl-Obergrenze aus dem 50-A-Kriterium (SYS2-PWR-001),
+                            %   sp 1600 auf vollem Akku = 8257 rpm, 970 g/Motor; Schubstand Run 5
+                            %   2026-10-18, evidence 4829A25237BFB7C8; NICHT die Motorgrenze
+                            %   (w_motor_max 1080 rad/s bei sp 2047, Run 4b). Variablenname w_max bleibt (Modell).
 Cd   = diag([0.10 0.10 0.15]);  % linearer Drag [N/(m/s)]
 h0 = 2;
 
